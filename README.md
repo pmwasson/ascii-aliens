@@ -1,4 +1,4 @@
-# ascii-invaders
+# ascii-aliens
 Text based shoot-em-up
 
 ## Sketches
