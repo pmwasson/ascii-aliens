@@ -198,18 +198,33 @@ pageSelect:
     ; draw ship
     lda     playerX
     sta     spriteX
-    lda     #18
-    sta     spriteY
-
-    lda     gameClock
-    lsr
-    lsr
-    lsr
-    and     #$1
-    sta     spritePage
-
+    lda     playerY
+    sta     spriteY  
     lda     playerSprite
     jsr     draw_sprite
+
+
+    ; draw aliens
+
+    lda     #2
+    sta     spriteY  
+
+    lda     #17
+    sta     spriteX
+    lda     #1
+    jsr     draw_sprite
+
+    lda     #7
+    sta     spriteX
+    lda     #2
+    jsr     draw_sprite
+
+    lda     #27
+    sta     spriteX
+    lda     #3
+    jsr     draw_sprite
+
+
 
 
     ; Set display page
@@ -356,12 +371,14 @@ rowLoop:
 ; draw_sprite
 ;-----------------------------------------------------------------------------
 ; Sprite format
-;   width, height   - 2 bytes
-;   row0 bytes      - width bytes
+;   row0 bytes      - width bytes of data
 ;   ...
-;   rowN bytes      - width bytes, where N is height-1
+;   rowN bytes      - width bytes of data, where N is height-1
+;   padding         - (64*2) - w*h
+;   width, height   - 2 bytes (always byte 62 and 63)
+
 ;
-; Sprites must fit within 64 bytes, including the 2-byte header.  So width*height + 2 =< 64
+; Sprites must fit within 64 bytes, including the 2-byte coda.  So width*height + 2 =< 64
 ; So an 8x8 sprite is not allowed, but 7x8, 8x7 or 6x10 are fine.
 
 .proc draw_sprite
@@ -388,14 +405,14 @@ rowLoop:
     sta     spritePtr1
 
     ; Read header
-    ldy     #0
+    ldy     #62
     lda     (spritePtr0),y
     sta     width
     sta     width_m1        ; width-1
     dec     width_m1
-    inc     spritePtr0
+
+    ldy     #63
     lda     (spritePtr0),y
-    inc     spritePtr0
     tax                     ; x == height
 
     ; copy spriteY so as to not modify
@@ -466,6 +483,7 @@ spritePage:     .byte   0
 starOffset:     .byte   0
 
 playerX:        .byte   (40-5)/2
+playerY:        .byte   23-3
 playerSprite:   .byte   0
 
 paddlePosition: .byte   0

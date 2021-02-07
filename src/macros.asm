@@ -5,6 +5,11 @@
 ;-----------------------------------------------------------------------------
 
 
+.macro  SpriteInfo w,h
+        .res    (64-2)-w*h
+        .byte   w,h
+.endmacro
+
 .macro  StringInv s
         .repeat .strlen(s), I
         .byte   .strat(s, I) & $3f
