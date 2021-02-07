@@ -64,13 +64,36 @@ gameLoop:
 :
 
 
+    ; Bullet
+    bit     bulletY
+    bpl     update_bullet
+
+    bit     BUTTON0
+    bpl     :+
+    clc
+    lda     playerX
+    adc     #2
+    sta     bulletX
+    lda     playerY
+    sta     bulletY
+    jsr     sound_shoot
+
+update_bullet:
+    lda     gameClock
+    and     #1
+    bne     :+
+    dec     bulletY
+:
+
+
+    ; Movement
     lda     paddlePosition
     bmi     paddle_left
     beq     paddle_middle
 
     ; must be right
-    lda     #0; 2
-    sta     playerSprite
+    ;lda     #0; 2
+    ;sta     playerSprite
 
     lda     playerX
     cmp     #39-4
@@ -79,8 +102,8 @@ gameLoop:
     jmp     gameLoop
 
 paddle_left:
-    lda     #0; 1
-    sta     playerSprite
+    ;lda     #0; 1
+    ;sta     playerSprite
 
     lda     playerX
     beq     gameLoop
@@ -88,8 +111,8 @@ paddle_left:
     jmp     gameLoop
 
 paddle_middle:
-    lda     #0
-    sta     playerSprite
+    ;lda     #0
+    ;sta     playerSprite
     jmp     gameLoop
 
 .endproc
@@ -136,9 +159,7 @@ paddle_middle:
     ldx     #0
     jsr     PREAD
     tya
-    sta     paddleValue
     bmi     check_right
-
 
     ; LEFT
     cmp     #64
@@ -166,8 +187,6 @@ gotKey:
     sta     KBDSTRB
     and     #$7f
     rts
-
-paddleValue:    .byte 0
 
 .endproc
 
@@ -200,7 +219,11 @@ pageSelect:
     sta     spriteX
     lda     playerY
     sta     spriteY  
-    lda     playerSprite
+    lda     #0
+    bit     BUTTON0
+    bpl     :+
+    lda     #4
+:
     jsr     draw_sprite
 
 
@@ -225,7 +248,11 @@ pageSelect:
     jsr     draw_sprite
 
 
-
+    ; draw bullet
+    lda     bulletX
+    ldy     bulletY
+    ldx     #'*' | $80
+    jsr     draw_char
 
     ; Set display page
     ;-------------------------------------------------------------------------
@@ -466,7 +493,7 @@ drawY:      .byte   0
 
 ; add utilies
 .include "inline_print.asm"
-
+.include "sounds.asm"
 
 ; Globals
 ;-----------------------------------------------------------------------------
@@ -488,6 +515,8 @@ playerSprite:   .byte   0
 
 paddlePosition: .byte   0
 
+bulletX:        .byte   0
+bulletY:        .byte   $ff
 
 ; Lookup tables
 ;-----------------------------------------------------------------------------

@@ -20,6 +20,9 @@ TEXTMODE        := $C01A    ; Bit 7 is 1 if text mode
 ALTCHARSETOFF   := $C00E    ; Write to turn off alternate characters
 ALTCHARSETON    := $C00F    ; Write to turn on alternate characters
 PAGE2           := $C01C    ; Bit 7 set if displaying page 2
+BUTTON0 		:= $C061 	; Bit 7 set if paddle button 0 is pressed
+BUTTON1 		:= $C062 	; Bit 7 set if paddle button 1 is pressed
+BUTTON2 		:= $C063 	; Bit 7 set if paddle button 2 is pressed
 
 ; ROM routines
 GR              := $F390    ; Low-res mixed graphics mode

@@ -35,3 +35,8 @@ KiteR:
     StringHiBG  ".|/o"  , '.'
     StringHiBG  ".O  "  , '.'
     SpriteInfo  4,5             ; 4 by 5
+
+playerShip1:
+    StringHiBG  "./*\." , '.'
+    StringHiBG  "<_^_>" , '.'
+    SpriteInfo  5,2             ; 5 by 2

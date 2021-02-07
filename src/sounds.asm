@@ -27,11 +27,11 @@ loop2:
 .endproc
 
 ;-----------------------------------------------------------------------------
-; sound_walk
+; sound_shoot
 ;-----------------------------------------------------------------------------
-.proc sound_walk
+.proc sound_shoot
     lda     #50         ; tone
-    ldx     #5          ; duration
+    ldx     #25         ; duration
     jsr     sound_tone
     lda     #190        ; tone
     ldx     #3          ; duration
