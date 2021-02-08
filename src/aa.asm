@@ -237,12 +237,12 @@ pageSelect:
     lda     #1
     jsr     draw_sprite
 
-    lda     #7
+    lda     #12
     sta     spriteX
     lda     #2
     jsr     draw_sprite
 
-    lda     #27
+    lda     #24
     sta     spriteX
     lda     #3
     jsr     draw_sprite
@@ -253,6 +253,25 @@ pageSelect:
     ldy     bulletY
     ldx     #'*' | $80
     jsr     draw_char
+
+
+    ; draw score
+    lda     #0
+    sta     spriteX
+    lda     #0
+    sta     spriteY
+    lda     #5
+    jsr     draw_sprite
+
+    ; draw lives
+    lda     #0
+    sta     spriteX
+    lda     #23
+    sta     spriteY
+    lda     #6
+    jsr     draw_sprite
+
+
 
     ; Set display page
     ;-------------------------------------------------------------------------

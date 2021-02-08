@@ -7,12 +7,12 @@
 
 spriteSheet:
 
-playerShip0:
+sprite_playerShip0:
     StringHiBG  "./|\." , '.'
-    StringHiBG  "<_^_>" , '.'
+    StringHiBG  "</^\>" , '.'
     SpriteInfo  5,2             ; 5 by 2
 
-KiteM:
+sprite_kiteM:
     StringHiBG  "O...O" , '.'
     StringHiBG  "|\^/|" , '.'
     StringHiBG  "|>-<|" , '.'
@@ -20,23 +20,34 @@ KiteM:
     StringHiBG  "O...O" , '.'
     SpriteInfo  5,5             ; 5 by 5
 
-KiteL:
-    StringHiBG  "...O"  , '.'
-    StringHiBG  ".o/|"  , '.'
-    StringHiBG  ".|<|"  , '.'
-    StringHiBG  ".o\|"  , '.'
-    StringHiBG  "...O"  , '.'
-    SpriteInfo  4,5             ; 4 by 5
+sprite_kiteL:
+    StringHiBG  "..O"  , '.'
+    StringHiBG  "o/|"  , '.'
+    StringHiBG  "|<|"  , '.'
+    StringHiBG  "o\|"  , '.'
+    StringHiBG  "..O"  , '.'
+    SpriteInfo  3,5             ; 3 by 5
 
-KiteR:
-    StringHiBG  ".O  "  , '.'
-    StringHiBG  ".|\o"  , '.'
-    StringHiBG  ".|>|"  , '.'
-    StringHiBG  ".|/o"  , '.'
-    StringHiBG  ".O  "  , '.'
-    SpriteInfo  4,5             ; 4 by 5
+sprite_kiteR:
+    StringHiBG  "O.."  , '.'
+    StringHiBG  "|\o"  , '.'
+    StringHiBG  "|>|"  , '.'
+    StringHiBG  "|/o"  , '.'
+    StringHiBG  "O.."  , '.'
+    SpriteInfo  3,5             ; 3 by 5
 
-playerShip1:
-    StringHiBG  "./*\." , '.'
-    StringHiBG  "<_^_>" , '.'
+sprite_playerShip1:
+    StringHiBG  "./^\." , '.'
+    StringHiBG  "</^\>" , '.'
     SpriteInfo  5,2             ; 5 by 2
+
+; Mock up
+sprite_score:
+    StringHi    "SCORE:0010"
+    SpriteInfo  10,1            ; 10 by 1
+
+; Mock up
+sprite_lives3:
+    StringHi    "^^^"
+    SpriteInfo  3,1             ; 3 by 1
+
