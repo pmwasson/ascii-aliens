@@ -27,6 +27,7 @@
 ;                 $EC $ED $EE $EF
 ;         $FA $FB $FC $FD $FE $FF 
 ;
+; Reserve $FE/$FF for inline print
 
 spritePtr0      :=  $06     ; Sprite pointer
 spritePtr1      :=  $07
@@ -40,6 +41,11 @@ KEY_WAIT        = ' '
 KEY_QUIT        = $1b
 KEY_NONE        = $ff
 
+; Actors
+ACTOR_SIZE      = 8
+ACTOR_MAX_COUNT = 8
+
+
 .segment "CODE"
 .org    $C00
 
@@ -49,6 +55,8 @@ KEY_NONE        = $ff
     ; make sure we are in 40-column mode
     lda     #$15
     jsr     COUT
+
+    jsr     set_level_1
 
 
 gameLoop:
@@ -63,6 +71,8 @@ gameLoop:
     jmp     quit_game
 :
 
+    ; Update actors
+    jsr     update_actors
 
     ; Bullet
     bit     bulletY
@@ -129,18 +139,38 @@ paddle_middle:
 .endproc
 
 ;-----------------------------------------------------------------------------
-; reset
+; set_level_1
 ;-----------------------------------------------------------------------------
-; Reset game state
-; Note, this is a good place to debug/cheat since you can modify to start
-; in whatever state you wish.
+; Reset game state for level 1
 
-.proc reset
+.proc set_level_1
 
-    ; TODO - reset state
+    ; copy level1 data
+    ldx     #0
+:
+    lda     level1,x
+    sta     actors,x
+    inx
+    cpx     #ACTOR_SIZE*ACTOR_MAX_COUNT
+    bne     :-
 
     rts
 
+;   state           - 0=inactive
+;   shape           -
+;   path_index      -
+;   x_lo            - decimal
+;   x_hi            - screen coordinate
+;   y_lo            - decimal
+;   y_hi            - screen coordinate
+;   count           -
+
+level1:
+    ;       active,shape,path,xlo,xhi,ylo,yhi,count
+    .byte   1,     6,    0,   0,  2,  0,  2,  0   
+    ;.byte   1,     8,    4,   0,  2,  0,  2,  0   
+    ;.byte   1,     10,   8,   0,  17, 0,  12, 0   
+    .res    8*(8-1)    
 .endproc
 
 ;-----------------------------------------------------------------------------
@@ -190,6 +220,207 @@ gotKey:
 
 .endproc
 
+;-----------------------------------------------------------------------------
+; update_actors
+;-----------------------------------------------------------------------------
+; actor:
+;   state           - 0=inactive
+;   shape           -
+;   path_index      -
+;   x_lo            - decimal
+;   x_hi            - screen coordinate
+;   y_lo            - decimal
+;   y_hi            - screen coordinate
+;   count           -
+;
+; path:
+;   x
+;   y
+;   count
+;   next_path
+
+.proc update_actors
+
+    lda     #0              ; point to first actor
+
+actor_loop:
+    tax
+    lda     actors,x        ; state
+    bne     :+
+
+    ; skip to next actor
+    txa
+    clc
+    adc     #ACTOR_SIZE
+    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
+    bne     actor_loop
+
+    ; done with list
+    rts
+
+:
+    inx                     ; shape (not needed)
+    inx                     ; path index
+    stx     temp1           ; remember offset for actor_path
+    ldy     actors,x
+
+    inx                     ; x_lo
+
+    lda     path,y          ; path_x
+    asl
+    bcs     x_neg
+    clc
+    adc     actors,x        
+    sta     actors,x        ; x_lo = path_x + x_lo
+
+    inx                     ; x_hi     
+    lda     actors,x
+    adc     #0
+    sta     actors,x        ; x_hi = x_hi + carry
+
+    jmp     do_y
+
+x_neg:
+    ; carry already set
+    sta     temp2           ; remember value to subtract
+    lda     actors,x        
+    sbc     temp2
+    sta     actors,x        ; x_lo = x_lo - path_x
+
+    inx                     ; x_hi     
+    lda     actors,x
+    sbc     #0
+    sta     actors,x        ; x_hi = x_hi - !carry
+
+do_y:
+    inx                     ; y_lo
+    iny                     ; path_y
+
+    lda     path,y          ; path_y
+    asl
+    bcs     y_neg
+    clc
+    adc     actors,x        
+    sta     actors,x        ; y_lo = path_y + y_lo
+
+    inx                     ; y_hi     
+    lda     actors,x
+    adc     #0
+    sta     actors,x        ; y_hi = y_hi + carry
+    jmp     do_path
+
+y_neg:
+    ; carry already set
+    sta     temp2           ; remember value to subtract
+    lda     actors,x        
+    sbc     temp2     
+    sta     actors,x        ; y_lo = y_lo - path_y
+
+    inx                     ; y_hi     
+    lda     actors,x
+    sbc     #0
+    sta     actors,x        ; y_hi = y_hi - !carry
+
+do_path:
+    inx                     ; actor_count
+    iny                     ; path_count
+
+    inc     actors,x        ; increment count
+    lda     actors,x        ; actor_count
+    cmp     path,y          ; path_count
+    bne     path_good
+
+    lda     #0
+    sta     actors,x        ; reset actor_count
+    iny                     ; next_path
+    stx     temp2           ; remeber offset to actor_count
+    ldx     temp1           ; restore actor_path
+    lda     path,y          ; next_path
+    sta     actors,x        ; path = next_path
+    ldx     temp2           ; restore x
+
+path_good:
+    inx                     ; next actor
+    txa
+    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
+    beq     :+
+
+    jmp     actor_loop
+
+:                    
+    ; all done
+    rts
+
+temp1:  .byte   0
+temp2:  .byte   0
+
+.endproc
+
+
+;-----------------------------------------------------------------------------
+; draw_actors
+;-----------------------------------------------------------------------------
+; actor:
+;   state           - 0=inactive
+;   shape           -
+;   path_index      -
+;   x_lo            - decimal
+;   x_hi            - screen coordinate
+;   y_lo            - decimal
+;   y_hi            - screen coordinate
+;   count           -
+
+.proc draw_actors
+    lda     #0              ; point to first actor
+
+actor_loop:
+    tax
+    lda     actors,x        ; state
+    bne     :+
+
+    ; skip to next actor
+    txa
+    clc
+    adc     #ACTOR_SIZE
+    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
+    bne     actor_loop
+
+    ; done with list
+    rts
+
+:
+    inx                     ; shape
+    lda     actors,x
+    sta     temp1           ; remember shape
+    inx                     ; path
+    inx                     ; x_lo
+    inx                     ; x_hi
+    lda     actors,x
+    sta     spriteX
+    inx                     ; y_lo
+    inx                     ; y_hi
+    lda     actors,x
+    sta     spriteY
+    inx                     ; count
+    inx                     ; next
+    stx     temp2           ; remember next actor
+
+    lda     temp1
+
+    jsr     draw_sprite
+
+    lda     temp2
+    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
+    bne     actor_loop
+
+    ; done with list
+    rts
+
+temp1:  .byte   0
+temp2:  .byte   0
+
+.endproc
+
 
 ;-----------------------------------------------------------------------------
 ; draw_screen
@@ -213,6 +444,8 @@ pageSelect:
     ; screen screen and draw stars
     jsr     star_screen
 
+    ; draw actors
+    jsr     draw_actors
 
     ; draw ship
     lda     playerX
@@ -222,29 +455,8 @@ pageSelect:
     lda     #0
     bit     BUTTON0
     bpl     :+
-    lda     #4
-:
-    jsr     draw_sprite
-
-
-    ; draw aliens
-
-    lda     #2
-    sta     spriteY  
-
-    lda     #17
-    sta     spriteX
     lda     #1
-    jsr     draw_sprite
-
-    lda     #12
-    sta     spriteX
-    lda     #2
-    jsr     draw_sprite
-
-    lda     #24
-    sta     spriteX
-    lda     #3
+:
     jsr     draw_sprite
 
 
@@ -254,21 +466,12 @@ pageSelect:
     ldx     #'*' | $80
     jsr     draw_char
 
-
-    ; draw score
-    lda     #0
-    sta     spriteX
-    lda     #0
-    sta     spriteY
-    lda     #5
-    jsr     draw_sprite
-
     ; draw lives
     lda     #0
     sta     spriteX
     lda     #23
     sta     spriteY
-    lda     #6
+    lda     #5
     jsr     draw_sprite
 
 
@@ -287,56 +490,13 @@ flipToPage1:
     sta     LOWSCR          ; diaplay page 1
     rts
 
-.endproc
+alienAnimate:   .byte   0
 
-;-----------------------------------------------------------------------------
-; fill_screen (screen1)
-;-----------------------------------------------------------------------------
-
-.proc fill_screen1
-    ldx     #0
-    lda     #$a0        ; blank
-loop:
-    ; 8 starting points, 3 rows each = 24 rows
-    sta     $400,x
-    sta     $480,x
-    sta     $500,x
-    sta     $580,x
-    sta     $600,x
-    sta     $680,x
-    sta     $700,x
-    sta     $780,x
-    inx 
-    cpx     #40*3
-    bne     loop
-    rts
-.endproc
-
-;-----------------------------------------------------------------------------
-; fill_screen (screen2)
-;-----------------------------------------------------------------------------
-
-.proc fill_screen2
-    ldx     #0
-    lda     #$a0        ; blank
-loop:
-    ; 8 starting points, 3 rows each = 24 rows
-    sta     $800,x
-    sta     $880,x
-    sta     $900,x
-    sta     $980,x
-    sta     $a00,x
-    sta     $a80,x
-    sta     $b00,x
-    sta     $b80,x
-    inx 
-    cpx     #40*3
-    bne     loop
-    rts
 .endproc
 
 ;-----------------------------------------------------------------------------
 ; star_screen
+; clear screen with stars!
 ;-----------------------------------------------------------------------------
 
 .proc star_screen
@@ -345,7 +505,7 @@ loop:
     clc
     lda     #0
     sta     screenPtr0
-    lda     drawPage
+    lda     drawPage            ; either 04 or 08
     sta     screenPtr1
 
     ; load position in star field
@@ -362,8 +522,14 @@ rowLoop:
 
     ; draw 1 star per line
 
-    ldy     starTable,x
     lda     #'.' | $80
+    ldy     starTable,x
+    bpl     :+
+    tya
+    and     #$7f        ; clear bit 7
+    tay
+    lda     #$ac        ; slightly different star
+:
     sta     (screenPtr0),y
 
     ; increment to the next line
@@ -440,8 +606,7 @@ rowLoop:
     adc     #<spriteSheet
     sta     spritePtr0
 
-    lda     spritePage      ; page offset used to animate
-    adc     #>spriteSheet
+    lda     #>spriteSheet
     sta     spritePtr1
     lda     temp 
     lsr
@@ -466,6 +631,13 @@ rowLoop:
     sta     drawY
 
 loopy:
+    ; check if Y is on screen
+    lda     drawY
+    bmi     skipY
+    cmp     #24
+    bpl     skipY
+
+
     ; calculate screen pointer
     ldy     drawY
     lda     spriteX
@@ -480,12 +652,12 @@ loopy:
     ldy     width_m1
 loopx:
     lda     (spritePtr0),y
-    beq     skip            ; if data is zero, don't draw
+    beq     skipX           ; if data is zero, don't draw
     sta     (screenPtr0),y
-skip:
+skipX:
     dey
     bpl     loopx
-
+skipY:
     ; assumes aligned such that there are no page crossing
     lda     spritePtr0
     adc     width           ; carry should still be clear
@@ -524,7 +696,6 @@ drawNextPage:   .byte   8   ; 8 or C
 
 spriteX:        .byte   0
 spriteY:        .byte   0
-spritePage:     .byte   0
 
 starOffset:     .byte   0
 
@@ -536,6 +707,19 @@ paddlePosition: .byte   0
 
 bulletX:        .byte   0
 bulletY:        .byte   $ff
+
+; Actors
+; 8 bytes:
+;   state           - 0=inactive
+;   shape           -
+;   path_index      -
+;   path_counter    -
+;   x_lo            - decimal
+;   x_hi            - screen coordinate
+;   y_lo            - decimal
+;   y_hi            - screen coordinate
+
+actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
 
 ; Lookup tables
 ;-----------------------------------------------------------------------------
@@ -592,27 +776,35 @@ linePage:
     .byte   >$0350
     .byte   >$03D0
 
-    ; 256 random number from 0-39 from random.org
+    ; 256 random number from 0-39 + a few bit 7s set
+    ; Not sure I like the different star, may remove
 starTable:
-    .byte   34, 29, 14, 21, 24, 8 , 11, 21, 11, 21, 30, 10, 11, 35, 37, 16
-    .byte   31, 5 , 19, 35, 27, 8 , 17, 35, 36, 24, 21, 28, 20, 18, 20, 27
-    .byte   11, 35, 19, 12, 38, 8 , 0 , 3 , 34, 20, 15, 19, 7 , 33, 2 , 26
-    .byte   12, 29, 27, 32, 8 , 32, 10, 21, 8 , 37, 27, 5 , 25, 8 , 3 , 11
-    .byte   17, 39, 15, 13, 38, 21, 35, 27, 26, 14, 25, 11, 19, 20, 39, 7
-    .byte   22, 38, 1 , 16, 25, 12, 3 , 7 , 4 , 18, 21, 34, 33, 21, 5 , 7
-    .byte   22, 2 , 7 , 20, 4 , 27, 38, 4 , 21, 31, 18, 31, 32, 15, 27, 26
-    .byte   22, 9 , 10, 11, 29, 32, 32, 6 , 6 , 28, 18, 1 , 5 , 31, 38, 1
-    .byte   29, 32, 23, 2 , 10, 8 , 19, 33, 35, 33, 8 , 13, 27, 21, 29, 24
-    .byte   26, 7 , 28, 13, 24, 14, 35, 4 , 16, 12, 1 , 2 , 1 , 31, 25, 36
-    .byte   28, 8 , 33, 22, 14, 22, 12, 20, 11, 0 , 33, 16, 10, 25, 1 , 26
-    .byte   9 , 26, 38, 2 , 39, 2 , 27, 2 , 9 , 31, 0 , 29, 33, 5 , 15, 3
-    .byte   23, 26, 23, 29, 6 , 17, 28, 13, 6 , 21, 4 , 14, 19, 26, 12, 30
-    .byte   22, 19, 10, 1 , 26, 37, 31, 31, 14, 35, 37, 39, 4 , 28, 7 , 31
-    .byte   5 , 31, 30, 18, 21, 12, 34, 35, 36, 21, 20, 18, 13, 23, 18, 22
-    .byte   37, 31, 3 , 6 , 16, 37, 20, 33, 37, 29, 17, 8 , 32, 2 , 29, 2
+    .byte   $18, $08, $0B, $15, $0B, $15, $1E, $0A, $8B, $23, $25, $10, $1F, $05, $13, $23
+    .byte   $1B, $08, $11, $23, $24, $98, $15, $1C, $14, $12, $14, $1B, $0B, $23, $13, $0C
+    .byte   $26, $08, $00, $03, $A2, $14, $0F, $13, $07, $21, $02, $1A, $8C, $1D, $1B, $20
+    .byte   $08, $20, $0A, $15, $08, $25, $1B, $05, $19, $08, $03, $0B, $11, $27, $0F, $0D
+    .byte   $26, $15, $23, $1B, $1A, $0E, $19, $0B, $13, $14, $27, $07, $96, $26, $01, $10
+    .byte   $19, $0C, $03, $07, $84, $12, $15, $22, $21, $15, $05, $07, $16, $02, $07, $14
+    .byte   $04, $9B, $26, $04, $15, $1F, $12, $1F, $20, $0F, $1B, $1A, $16, $09, $0A, $0B
+    .byte   $1D, $20, $20, $06, $06, $1C, $12, $01, $05, $1F, $26, $81, $1D, $20, $17, $02
+    .byte   $0A, $08, $13, $21, $23, $21, $08, $8D, $1B, $15, $1D, $18, $1A, $07, $1C, $0D
+    .byte   $18, $0E, $23, $04, $10, $0C, $01, $02, $01, $1F, $19, $A4, $1C, $08, $21, $16
+    .byte   $0E, $16, $0C, $14, $8B, $00, $21, $10, $0A, $19, $01, $1A, $09, $1A, $26, $02
+    .byte   $27, $02, $1B, $02, $09, $9F, $00, $1D, $21, $05, $0F, $03, $17, $1A, $17, $9D
+    .byte   $06, $11, $1C, $0D, $06, $15, $04, $0E, $13, $1A, $8C, $1E, $16, $13, $0A, $01
+    .byte   $1A, $25, $1F, $1F, $0E, $A3, $25, $27, $04, $1C, $07, $1F, $05, $1F, $1E, $12
+    .byte   $15, $0C, $A2, $23, $24, $15, $14, $12, $0D, $17, $12, $16, $25, $1F, $03, $06
+    .byte   $10, $25, $14, $21, $25, $1D, $11, $88, $20, $02, $1D, $02, $22, $1D, $0E, $15
+
+
+;-----------------------------------------------------------------------------
+; Paths
+;-----------------------------------------------------------------------------
+
+.include "path.asm"
+
 ;-----------------------------------------------------------------------------
 ; Game Sprites
 ;-----------------------------------------------------------------------------
 
 .include "sprites.asm"
-
