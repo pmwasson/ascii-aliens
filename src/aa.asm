@@ -259,96 +259,78 @@ actor_loop:
     rts
 
 :
-    inx                     ; shape (not needed)
-    inx                     ; path index
-    stx     temp1           ; remember offset for actor_path
-    ldy     actors,x
-
-    inx                     ; x_lo
-
-    lda     path,y          ; path_x
+    ldy     actors+ACTOR_PATH,x
+    lda     path+PATH_X,y
     asl
     bcs     x_neg
     clc
-    adc     actors,x        
-    sta     actors,x        ; x_lo = path_x + x_lo
+    adc     actors+ACTOR_X_LO,x        
+    sta     actors+ACTOR_X_LO,x     ; x_lo = path_x + x_lo
 
-    inx                     ; x_hi     
-    lda     actors,x
+    lda     actors+ACTOR_X_HI,x
     adc     #0
-    sta     actors,x        ; x_hi = x_hi + carry
+    sta     actors+ACTOR_X_HI,x     ; x_hi = x_hi + carry
 
     jmp     do_y
 
 x_neg:
     ; carry already set
-    sta     temp2           ; remember value to subtract
-    lda     actors,x        
+    sta     temp2                   ; remember value to subtract
+    lda     actors+ACTOR_X_LO,x        
     sbc     temp2
-    sta     actors,x        ; x_lo = x_lo - path_x
+    sta     actors+ACTOR_X_LO,x     ; x_lo = x_lo - path_x
 
-    inx                     ; x_hi     
-    lda     actors,x
+    lda     actors+ACTOR_X_HI,x
     sbc     #0
-    sta     actors,x        ; x_hi = x_hi - !carry
+    sta     actors+ACTOR_X_HI,x     ; x_hi = x_hi - !carry
 
 do_y:
-    inx                     ; y_lo
-    iny                     ; path_y
 
-    lda     path,y          ; path_y
+    lda     path+PATH_Y,y           ; path_y
     asl
     bcs     y_neg
     clc
-    adc     actors,x        
-    sta     actors,x        ; y_lo = path_y + y_lo
+    adc     actors+ACTOR_Y_LO,x        
+    sta     actors+ACTOR_Y_LO,x     ; y_lo = path_y + y_lo
 
-    inx                     ; y_hi     
-    lda     actors,x
+    lda     actors+ACTOR_Y_HI,x
     adc     #0
-    sta     actors,x        ; y_hi = y_hi + carry
+    sta     actors+ACTOR_Y_HI,x     ; y_hi = y_hi + carry
     jmp     do_path
 
 y_neg:
     ; carry already set
-    sta     temp2           ; remember value to subtract
-    lda     actors,x        
+    sta     temp2                   ; remember value to subtract
+    lda     actors+ACTOR_Y_LO,x        
     sbc     temp2     
-    sta     actors,x        ; y_lo = y_lo - path_y
+    sta     actors+ACTOR_Y_LO,x     ; y_lo = y_lo - path_y
 
-    inx                     ; y_hi     
-    lda     actors,x
+    lda     actors+ACTOR_Y_HI,x
     sbc     #0
-    sta     actors,x        ; y_hi = y_hi - !carry
+    sta     actors+ACTOR_Y_HI,x     ; y_hi = y_hi - !carry
 
 do_path:
-    inx                     ; actor_count
-    iny                     ; path_count
-
-    inc     actors,x        ; increment count
-    lda     actors,x        ; actor_count
-    cmp     path,y          ; path_count
+    inc     actors+ACTOR_COUNT,x    ; increment count
+    lda     actors+ACTOR_COUNT,x    ; actor_count
+    cmp     path+PATH_COUNT,y       ; path_count
     bne     path_good
 
     lda     #0
-    sta     actors,x        ; reset actor_count
-    iny                     ; next_path
-    stx     temp2           ; remeber offset to actor_count
-    ldx     temp1           ; restore actor_path
-    lda     path,y          ; next_path
-    sta     actors,x        ; path = next_path
-    ldx     temp2           ; restore x
+    sta     actors+ACTOR_X_LO,x     ; reset x_lo to avoid accumulated error
+    sta     actors+ACTOR_Y_LO,x     ; reset y_lo to avoid accumulated error
+    sta     actors+ACTOR_COUNT,x    ; reset count
+    lda     path+PATH_NEXT,y        ; next_path
+    sta     actors+ACTOR_PATH,x     ; path = next_path
 
 path_good:
-    inx                     ; next actor
+    ; skip to next actor
     txa
+    clc
+    adc     #ACTOR_SIZE
     cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
     beq     :+
-
     jmp     actor_loop
-
-:                    
-    ; all done
+:
     rts
 
 temp1:  .byte   0
@@ -374,13 +356,37 @@ temp2:  .byte   0
     lda     #0              ; point to first actor
 
 actor_loop:
+    sta     actor_index
     tax
     lda     actors,x        ; state
-    bne     :+
+    beq     :+
 
-    ; skip to next actor
-    txa
+    lda     actors+ACTOR_X_HI,x
+    sta     spriteX
+    lda     actors+ACTOR_Y_HI,x
+    sta     spriteY
+    lda     actors+ACTOR_SHAPE,x
+    jsr     draw_sprite
+
+
+    ldx     actor_index
+    lda     actors+ACTOR_X_HI,x
+    tax
+    ldy     #0
+    lda     #0
+    jsr     draw_value
+
+    ldx     actor_index
+    lda     actors+ACTOR_Y_HI,x
+    tax
+    ldy     #0
+    lda     #3
+    jsr     draw_value
+
+:
+    ; next actor
     clc
+    lda     actor_index
     adc     #ACTOR_SIZE
     cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
     bne     actor_loop
@@ -388,36 +394,7 @@ actor_loop:
     ; done with list
     rts
 
-:
-    inx                     ; shape
-    lda     actors,x
-    sta     temp1           ; remember shape
-    inx                     ; path
-    inx                     ; x_lo
-    inx                     ; x_hi
-    lda     actors,x
-    sta     spriteX
-    inx                     ; y_lo
-    inx                     ; y_hi
-    lda     actors,x
-    sta     spriteY
-    inx                     ; count
-    inx                     ; next
-    stx     temp2           ; remember next actor
-
-    lda     temp1
-
-    jsr     draw_sprite
-
-    lda     temp2
-    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
-    bne     actor_loop
-
-    ; done with list
-    rts
-
-temp1:  .byte   0
-temp2:  .byte   0
+actor_index:    .byte   0
 
 .endproc
 
@@ -580,6 +557,61 @@ rowLoop:
 .endproc
 
 ;-----------------------------------------------------------------------------
+; draw_value
+; y = row
+; a = col
+; x = value
+;-----------------------------------------------------------------------------
+.proc draw_value
+    stx     temp
+    clc
+    adc     lineOffset,y    ; + lineOffset
+    sta     screenPtr0    
+    lda     linePage,y
+    adc     drawPage        ; previous carry should be clear
+    sta     screenPtr1
+    ldy     #0
+    txa
+    lsr
+    lsr
+    lsr
+    lsr
+    tax
+    lda     asciiNibble,x
+    sta     (screenPtr0),y
+    iny
+    lda     temp
+    and     #$f
+    tax
+    lda     asciiNibble,x
+    sta     (screenPtr0),y
+    rts
+
+temp:
+    .byte   0
+
+asciiNibble:    
+    .byte   '0'+$80
+    .byte   '1'+$80
+    .byte   '2'+$80
+    .byte   '3'+$80
+    .byte   '4'+$80
+    .byte   '5'+$80
+    .byte   '6'+$80
+    .byte   '7'+$80
+    .byte   '8'+$80
+    .byte   '9'+$80
+    .byte   'A'+$80
+    .byte   'B'+$80
+    .byte   'C'+$80
+    .byte   'D'+$80
+    .byte   'E'+$80
+    .byte   'F'+$80
+
+.endproc
+
+
+;-----------------------------------------------------------------------------
 ; draw_sprite
 ;-----------------------------------------------------------------------------
 ; Sprite format
@@ -709,15 +741,14 @@ bulletX:        .byte   0
 bulletY:        .byte   $ff
 
 ; Actors
-; 8 bytes:
-;   state           - 0=inactive
-;   shape           -
-;   path_index      -
-;   path_counter    -
-;   x_lo            - decimal
-;   x_hi            - screen coordinate
-;   y_lo            - decimal
-;   y_hi            - screen coordinate
+ACTOR_STATE = 0     ; 0=inactive
+ACTOR_SHAPE = 1     ; Base sprite
+ACTOR_PATH  = 2     ; Path index
+ACTOR_X_LO  = 3     ; decimal for X
+ACTOR_X_HI  = 4     ; screen X
+ACTOR_Y_LO  = 5     ; decimal for Y
+ACTOR_Y_HI  = 6     ; screen Y
+ACTOR_COUNT = 7     ; path counter
 
 actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
 
