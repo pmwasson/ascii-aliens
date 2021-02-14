@@ -45,6 +45,15 @@ KEY_NONE        = $ff
 ACTOR_SIZE      = 8
 ACTOR_MAX_COUNT = 8
 
+ACTOR_STATE     = 0     ; 0=inactive
+ACTOR_SHAPE     = 1     ; Base sprite
+ACTOR_PATH      = 2     ; Path index
+ACTOR_X_LO      = 3     ; decimal for X
+ACTOR_X_HI      = 4     ; screen X
+ACTOR_Y_LO      = 5     ; decimal for Y
+ACTOR_Y_HI      = 6     ; screen Y
+ACTOR_COUNT     = 7     ; path counter
+
 
 .segment "CODE"
 .org    $C00
@@ -167,10 +176,14 @@ paddle_middle:
 
 level1:
     ;       active,shape,path,xlo,xhi,ylo,yhi,count
-    .byte   1,     6,    0,   0,  2,  0,  2,  0   
-    ;.byte   1,     8,    4,   0,  2,  0,  2,  0   
-    ;.byte   1,     10,   8,   0,  17, 0,  12, 0   
-    .res    8*(8-1)    
+    .byte   1,     10,   0,   0,  2,  0,  256-7,  0   
+    .byte   1,     6,    0,   0,  8,  0,  256-9,  0   
+    .byte   1,     6,    0,   0,  14, 0,  256-10,  0   
+    .byte   1,     6,    0,   0,  20, 0,  256-10,  0   
+    .byte   1,     6,    0,   0,  26, 0,  256-9,  0   
+    .byte   1,     10,   0,   0,  31, 0,  256-7,  0   
+    .byte   1,     8,    0,   0,  16, 0,  256-5,  0   
+    .res    (8*(8-7))    
 .endproc
 
 ;-----------------------------------------------------------------------------
@@ -353,6 +366,16 @@ temp2:  .byte   0
 ;   count           -
 
 .proc draw_actors
+
+    ; set up animation value
+    lda     gameClock
+    lsr
+    lsr
+    lsr
+    lsr
+    and     #1
+    sta     animate
+
     lda     #0              ; point to first actor
 
 actor_loop:
@@ -366,6 +389,7 @@ actor_loop:
     lda     actors+ACTOR_Y_HI,x
     sta     spriteY
     lda     actors+ACTOR_SHAPE,x
+    eor     animate
     jsr     draw_sprite
 
 
@@ -395,7 +419,7 @@ actor_loop:
     rts
 
 actor_index:    .byte   0
-
+animate:        .byte   0
 .endproc
 
 
@@ -624,6 +648,8 @@ asciiNibble:
 ;
 ; Sprites must fit within 64 bytes, including the 2-byte coda.  So width*height + 2 =< 64
 ; So an 8x8 sprite is not allowed, but 7x8, 8x7 or 6x10 are fine.
+;
+; This routine can handle off-screen sprites in Y but not in X.
 
 .proc draw_sprite
 
@@ -740,16 +766,6 @@ paddlePosition: .byte   0
 bulletX:        .byte   0
 bulletY:        .byte   $ff
 
-; Actors
-ACTOR_STATE = 0     ; 0=inactive
-ACTOR_SHAPE = 1     ; Base sprite
-ACTOR_PATH  = 2     ; Path index
-ACTOR_X_LO  = 3     ; decimal for X
-ACTOR_X_HI  = 4     ; screen X
-ACTOR_Y_LO  = 5     ; decimal for Y
-ACTOR_Y_HI  = 6     ; screen Y
-ACTOR_COUNT = 7     ; path counter
-
 actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
 
 ; Lookup tables
@@ -810,22 +826,22 @@ linePage:
     ; 256 random number from 0-39 + a few bit 7s set
     ; Not sure I like the different star, may remove
 starTable:
-    .byte   $18, $08, $0B, $15, $0B, $15, $1E, $0A, $8B, $23, $25, $10, $1F, $05, $13, $23
-    .byte   $1B, $08, $11, $23, $24, $98, $15, $1C, $14, $12, $14, $1B, $0B, $23, $13, $0C
-    .byte   $26, $08, $00, $03, $A2, $14, $0F, $13, $07, $21, $02, $1A, $8C, $1D, $1B, $20
+    .byte   $18, $08, $0B, $15, $0B, $15, $1E, $0A, $0B, $23, $25, $10, $1F, $05, $13, $23
+    .byte   $1B, $08, $11, $23, $24, $18, $15, $1C, $14, $12, $14, $1B, $0B, $23, $13, $0C
+    .byte   $26, $08, $00, $03, $12, $14, $0F, $13, $07, $21, $02, $1A, $0C, $1D, $1B, $20
     .byte   $08, $20, $0A, $15, $08, $25, $1B, $05, $19, $08, $03, $0B, $11, $27, $0F, $0D
-    .byte   $26, $15, $23, $1B, $1A, $0E, $19, $0B, $13, $14, $27, $07, $96, $26, $01, $10
-    .byte   $19, $0C, $03, $07, $84, $12, $15, $22, $21, $15, $05, $07, $16, $02, $07, $14
-    .byte   $04, $9B, $26, $04, $15, $1F, $12, $1F, $20, $0F, $1B, $1A, $16, $09, $0A, $0B
-    .byte   $1D, $20, $20, $06, $06, $1C, $12, $01, $05, $1F, $26, $81, $1D, $20, $17, $02
-    .byte   $0A, $08, $13, $21, $23, $21, $08, $8D, $1B, $15, $1D, $18, $1A, $07, $1C, $0D
-    .byte   $18, $0E, $23, $04, $10, $0C, $01, $02, $01, $1F, $19, $A4, $1C, $08, $21, $16
-    .byte   $0E, $16, $0C, $14, $8B, $00, $21, $10, $0A, $19, $01, $1A, $09, $1A, $26, $02
-    .byte   $27, $02, $1B, $02, $09, $9F, $00, $1D, $21, $05, $0F, $03, $17, $1A, $17, $9D
-    .byte   $06, $11, $1C, $0D, $06, $15, $04, $0E, $13, $1A, $8C, $1E, $16, $13, $0A, $01
-    .byte   $1A, $25, $1F, $1F, $0E, $A3, $25, $27, $04, $1C, $07, $1F, $05, $1F, $1E, $12
-    .byte   $15, $0C, $A2, $23, $24, $15, $14, $12, $0D, $17, $12, $16, $25, $1F, $03, $06
-    .byte   $10, $25, $14, $21, $25, $1D, $11, $88, $20, $02, $1D, $02, $22, $1D, $0E, $15
+    .byte   $26, $15, $23, $1B, $1A, $0E, $19, $0B, $13, $14, $27, $07, $16, $26, $01, $10
+    .byte   $19, $0C, $03, $07, $04, $12, $15, $22, $21, $15, $05, $07, $16, $02, $07, $14
+    .byte   $04, $1B, $26, $04, $15, $1F, $12, $1F, $20, $0F, $1B, $1A, $16, $09, $0A, $0B
+    .byte   $1D, $20, $20, $06, $06, $1C, $12, $01, $05, $1F, $26, $01, $1D, $20, $17, $02
+    .byte   $0A, $08, $13, $21, $23, $21, $08, $0D, $1B, $15, $1D, $18, $1A, $07, $1C, $0D
+    .byte   $18, $0E, $23, $04, $10, $0C, $01, $02, $01, $1F, $19, $14, $1C, $08, $21, $16
+    .byte   $0E, $16, $0C, $14, $0B, $00, $21, $10, $0A, $19, $01, $1A, $09, $1A, $26, $02
+    .byte   $27, $02, $1B, $02, $09, $1F, $00, $1D, $21, $05, $0F, $03, $17, $1A, $17, $1D
+    .byte   $06, $11, $1C, $0D, $06, $15, $04, $0E, $13, $1A, $0C, $1E, $16, $13, $0A, $01
+    .byte   $1A, $25, $1F, $1F, $0E, $13, $25, $27, $04, $1C, $07, $1F, $05, $1F, $1E, $12
+    .byte   $15, $0C, $12, $23, $24, $15, $14, $12, $0D, $17, $12, $16, $25, $1F, $03, $06
+    .byte   $10, $25, $14, $21, $25, $1D, $11, $08, $20, $02, $1D, $02, $22, $1D, $0E, $15
 
 
 ;-----------------------------------------------------------------------------
