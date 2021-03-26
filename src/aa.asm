@@ -33,13 +33,11 @@ spritePtr0      :=  $06     ; Sprite pointer
 spritePtr1      :=  $07
 screenPtr0      :=  $08     ; Screen pointer
 screenPtr1      :=  $09
+stringPtr0      :=  $FE
+stringPtr1      :=  $FF
 
 ; Key bindings
-KEY_RIGHT       = $08
-KEY_LEFT        = $15
-KEY_WAIT        = ' '
 KEY_QUIT        = $1b
-KEY_NONE        = $ff
 
 ; Actors
 ACTOR_SIZE      = 8
@@ -91,11 +89,22 @@ gameLoop:
     bpl     :+
     clc
     lda     playerX
+    sta     messageX
+    inc     messageX
     adc     #2
     sta     bulletX
     lda     playerY
+    sta     messageY
     sta     bulletY
     jsr     sound_shoot
+
+    lda     #<stringPew
+    sta     stringPtr0
+    lda     #>stringPew
+    sta     stringPtr1
+    lda     #5
+    sta     messageTimer
+
 
 update_bullet:
     lda     gameClock
@@ -163,6 +172,22 @@ paddle_middle:
     cpx     #ACTOR_SIZE*ACTOR_MAX_COUNT
     bne     :-
 
+    ; set up message
+    lda     #39/2 - 5/2
+    sta     messageX
+    lda     #23/2
+    sta     messageY
+    lda     #<level1_message
+    sta     stringPtr0
+    lda     #>level1_message
+    sta     stringPtr1
+    lda     #10
+    sta     messageTimer
+
+    ; reset game clock
+    lda     #0
+    sta     gameClock
+
     rts
 
 ;   state           - 0=inactive
@@ -183,7 +208,11 @@ level1:
     .byte   1,     6,    0,   0,  26, 0,  256-9,  0   
     .byte   1,     10,   0,   0,  31, 0,  256-7,  0   
     .byte   1,     8,    0,   0,  16, 0,  256-5,  0   
-    .res    (8*(8-7))    
+    .res    (8*(8-7))
+
+level1_message:
+    StringInv0   "WAVE 1"
+
 .endproc
 
 ;-----------------------------------------------------------------------------
@@ -476,6 +505,14 @@ pageSelect:
     jsr     draw_sprite
 
 
+    lda     messageTimer
+    beq     :+
+    jsr     draw_message
+    lda     gameClock
+    and     #$f             ; divide clock by 16
+    bne     :+
+    dec     messageTimer
+:
 
     ; Set display page
     ;-------------------------------------------------------------------------
@@ -634,6 +671,34 @@ asciiNibble:
 
 .endproc
 
+;-----------------------------------------------------------------------------
+; draw_message
+; y = row
+; a = col
+; x = value
+;-----------------------------------------------------------------------------
+.proc draw_message
+    lda     messageX
+    ldy     messageY
+    clc
+    adc     lineOffset,y    ; + lineOffset
+    sta     screenPtr0    
+    lda     linePage,y
+    adc     drawPage        ; previous carry should be clear
+    sta     screenPtr1
+
+    ldy     #0
+loop:
+    lda     (stringPtr0),y
+    beq     done
+    sta     (screenPtr0),y
+    iny
+    bne     loop
+done:
+    rts
+
+.endproc
+
 
 ;-----------------------------------------------------------------------------
 ; draw_sprite
@@ -768,6 +833,10 @@ bulletY:        .byte   $ff
 
 actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
 
+messageTimer:   .byte   0
+messageX:       .byte   0
+messageY:       .byte   0
+
 ; Lookup tables
 ;-----------------------------------------------------------------------------
 
@@ -843,7 +912,8 @@ starTable:
     .byte   $15, $0C, $12, $23, $24, $15, $14, $12, $0D, $17, $12, $16, $25, $1F, $03, $06
     .byte   $10, $25, $14, $21, $25, $1D, $11, $08, $20, $02, $1D, $02, $22, $1D, $0E, $15
 
-
+stringPew:
+    StringHi0   "PEW!"
 ;-----------------------------------------------------------------------------
 ; Paths
 ;-----------------------------------------------------------------------------

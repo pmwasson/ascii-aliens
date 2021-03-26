@@ -16,10 +16,20 @@
         .endrep
 .endmacro
 
+.macro  StringInv0 s
+        StringInv s
+        .byte   0
+.endmacro
+
 .macro  StringHi s
         .repeat .strlen(s), I
         .byte   .strat(s, I) | $80
         .endrep
+.endmacro
+
+.macro  StringHi0 s
+        StringHi s
+        .byte   0
 .endmacro
 
 .macro  StringHiBG s,bg

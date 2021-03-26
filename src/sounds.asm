@@ -3,6 +3,8 @@
 ;-----------------------------------------------------------------------------
 ; A collection of sounds
 ;
+; Look into improving sounds using:
+;  https://www.applefritter.com/appleii-box/H218ArcadeSoundEditor.htm
 
 ;-----------------------------------------------------------------------------
 ; sound_tone
