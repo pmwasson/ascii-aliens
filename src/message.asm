@@ -193,14 +193,20 @@ message_bad7:
 message_pew:
     StringHi0   "PEW!"
 
+message_clear:
+    StringInv0  " --- NEXT LIFE --- "
+
+message_clear:
+    StringInv0  " --- WAVE CLEARED --- "
+
 message_wave1:
-    StringInv0  "WAVE ONE - THE BEGINNING"
+    StringInv0  " --- WAVE ONE - THE BEGINNING --- "
 
 message_wave2:
-    StringInv0  "WAVE TWO - ESCULATION"
+    StringInv0  " --- WAVE TWO - ESCALATION --- "
 
 message_wave3:
-    StringInv0  "WAVE THREE - CONCLUSION"
+    StringInv0  " --- WAVE THREE - CONCLUSION --- "
 
 ;-----------------------------------------------------------------------------
 ; Message Data

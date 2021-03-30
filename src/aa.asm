@@ -81,6 +81,10 @@ gameLoop:
     ; Update actors
     jsr     update_actors
 
+    lda     playerY
+    cmp     #23
+    bpl     gameLoop            ; player is dead!
+    
     ; Bullet
     bit     bulletY
     bpl     update_bullet
@@ -299,41 +303,80 @@ actor_next:
 :
 
 
-    ; Check for collision
+    ; Check for bullet collision
     ;--------------------------------------
 
+bullet:
     clc
     lda     bulletY
-    bmi     update_coord        ; if no bullet, skip
+    bmi     player        ; if no bullet, skip
 
     ; check Y
 
     lda     actors+ACTOR_Y_HI,x
     adc     #2
     cmp     bulletY
-    bne     update_coord
+    bne     player
     sta     message_y
 
     ; check X
 
     lda     actors+ACTOR_X_HI,x
     cmp     bulletX
-    bpl     update_coord
+    bpl     player
     sta     message_x
 
     clc 
     adc     #5
     cmp     bulletX
+    bmi     player
+
+    jmp     kill
+
+    ; Check for player collision
+    ;--------------------------------------
+
+    ; check Y
+player:
+    clc
+    lda     playerY
+    cmp     #23
+    bpl     update_coord    ; no player
+
+    ; check Y
+
+    lda     actors+ACTOR_Y_HI,x
+    adc     #2
+    cmp     playerY
+    bne     update_coord
+    sta     message_y
+
+    ; check X
+
+    lda     actors+ACTOR_X_HI,x
+    cmp     playerX
+    bpl     update_coord
+    sta     message_x
+
+    clc 
+    adc     #5
+    cmp     playerX
     bmi     update_coord
-    
+
+    ; move player off-screen
+    lda     #24
+    sta     playerY
+
+kill:
+    ; clear bullet
+    lda     #$ff
+    sta     bulletY 
+
     ; set actor to inactive
     lda     #0
     sta     actors,x
     stx     temp
 
-    ; clear bullet
-    lda     #$ff
-    sta     bulletY 
 
     ; display message
     ldx     #6      ; time
@@ -343,6 +386,8 @@ actor_next:
 
     ldx     temp
     jmp     actor_next
+
+
 
 
     ; Update Coordinates
@@ -460,21 +505,6 @@ actor_loop:
     lda     actors+ACTOR_SHAPE,x
     eor     animate
     jsr     draw_sprite
-
-
-    ldx     actor_index
-    lda     actors+ACTOR_X_HI,x
-    tax
-    ldy     #0
-    lda     #0
-    jsr     draw_value
-
-    ldx     actor_index
-    lda     actors+ACTOR_Y_HI,x
-    tax
-    ldy     #0
-    lda     #3
-    jsr     draw_value
 
 :
     ; next actor
