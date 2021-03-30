@@ -89,21 +89,18 @@ gameLoop:
     bpl     :+
     clc
     lda     playerX
-    sta     messageX
-    inc     messageX
+    sta     message_x
+    inc     message_x
     adc     #2
     sta     bulletX
     lda     playerY
-    sta     messageY
+    sta     message_y
     sta     bulletY
     jsr     sound_shoot
 
-    lda     #<stringPew
-    sta     stringPtr0
-    lda     #>stringPew
-    sta     stringPtr1
-    lda     #5
-    sta     messageTimer
+    lda     #MESSAGE_INDEX_PEW
+    ldx     #3  ; display time
+    jsr     set_message
 
 
 update_bullet:
@@ -173,16 +170,13 @@ paddle_middle:
     bne     :-
 
     ; set up message
-    lda     #39/2 - 5/2
-    sta     messageX
-    lda     #23/2
-    sta     messageY
-    lda     #<level1_message
-    sta     stringPtr0
-    lda     #>level1_message
-    sta     stringPtr1
-    lda     #10
-    sta     messageTimer
+    lda     #8
+    sta     message_x
+    lda     #13
+    sta     message_y
+    lda     #MESSAGE_INDEX_WAVE1
+    ldx     #10
+    jsr     set_message
 
     ; reset game clock
     lda     #0
@@ -284,12 +278,14 @@ gotKey:
 .proc update_actors
 
     lda     #0              ; point to first actor
+    sta     activeCount
 
 actor_loop:
     tax
-    lda     actors,x        ; state
+    lda     actors+ACTOR_STATE,x        ; state
     bne     :+
 
+actor_next:
     ; skip to next actor
     txa
     clc
@@ -301,6 +297,58 @@ actor_loop:
     rts
 
 :
+
+
+    ; Check for collision
+    ;--------------------------------------
+
+    clc
+    lda     bulletY
+    bmi     update_coord        ; if no bullet, skip
+
+    ; check Y
+
+    lda     actors+ACTOR_Y_HI,x
+    adc     #2
+    cmp     bulletY
+    bne     update_coord
+    sta     message_y
+
+    ; check X
+
+    lda     actors+ACTOR_X_HI,x
+    cmp     bulletX
+    bpl     update_coord
+    sta     message_x
+
+    clc 
+    adc     #5
+    cmp     bulletX
+    bmi     update_coord
+    
+    ; set actor to inactive
+    lda     #0
+    sta     actors,x
+    stx     temp
+
+    ; clear bullet
+    lda     #$ff
+    sta     bulletY 
+
+    ; display message
+    ldx     #6      ; time
+    lda     gameClock
+    and     #7
+    jsr     set_message
+
+    ldx     temp
+    jmp     actor_next
+
+
+    ; Update Coordinates
+    ;--------------------------------------
+update_coord:
+    inc     activeCount
     ldy     actors+ACTOR_PATH,x
     lda     path+PATH_X,y
     asl
@@ -317,9 +365,9 @@ actor_loop:
 
 x_neg:
     ; carry already set
-    sta     temp2                   ; remember value to subtract
+    sta     temp                    ; remember value to subtract
     lda     actors+ACTOR_X_LO,x        
-    sbc     temp2
+    sbc     temp 
     sta     actors+ACTOR_X_LO,x     ; x_lo = x_lo - path_x
 
     lda     actors+ACTOR_X_HI,x
@@ -342,9 +390,9 @@ do_y:
 
 y_neg:
     ; carry already set
-    sta     temp2                   ; remember value to subtract
+    sta     temp                    ; remember value to subtract
     lda     actors+ACTOR_Y_LO,x        
-    sbc     temp2     
+    sbc     temp      
     sta     actors+ACTOR_Y_LO,x     ; y_lo = y_lo - path_y
 
     lda     actors+ACTOR_Y_HI,x
@@ -365,18 +413,10 @@ do_path:
     sta     actors+ACTOR_PATH,x     ; path = next_path
 
 path_good:
-    ; skip to next actor
-    txa
-    clc
-    adc     #ACTOR_SIZE
-    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
-    beq     :+
-    jmp     actor_loop
-:
-    rts
+    jmp     actor_next
 
-temp1:  .byte   0
-temp2:  .byte   0
+
+temp:   .byte   0
 
 .endproc
 
@@ -493,8 +533,10 @@ pageSelect:
     ; draw bullet
     lda     bulletX
     ldy     bulletY
+    bmi     :+
     ldx     #'*' | $80
     jsr     draw_char
+:
 
     ; draw lives
     lda     #0
@@ -505,14 +547,8 @@ pageSelect:
     jsr     draw_sprite
 
 
-    lda     messageTimer
-    beq     :+
-    jsr     draw_message
-    lda     gameClock
-    and     #$f             ; divide clock by 16
-    bne     :+
-    dec     messageTimer
-:
+    ; draw messages last (so never covered up!)
+    jsr     draw_messages
 
     ; Set display page
     ;-------------------------------------------------------------------------
@@ -671,34 +707,6 @@ asciiNibble:
 
 .endproc
 
-;-----------------------------------------------------------------------------
-; draw_message
-; y = row
-; a = col
-; x = value
-;-----------------------------------------------------------------------------
-.proc draw_message
-    lda     messageX
-    ldy     messageY
-    clc
-    adc     lineOffset,y    ; + lineOffset
-    sta     screenPtr0    
-    lda     linePage,y
-    adc     drawPage        ; previous carry should be clear
-    sta     screenPtr1
-
-    ldy     #0
-loop:
-    lda     (stringPtr0),y
-    beq     done
-    sta     (screenPtr0),y
-    iny
-    bne     loop
-done:
-    rts
-
-.endproc
-
 
 ;-----------------------------------------------------------------------------
 ; draw_sprite
@@ -831,11 +839,9 @@ paddlePosition: .byte   0
 bulletX:        .byte   0
 bulletY:        .byte   $ff
 
-actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
+activeCount:    .byte   0
 
-messageTimer:   .byte   0
-messageX:       .byte   0
-messageY:       .byte   0
+actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
 
 ; Lookup tables
 ;-----------------------------------------------------------------------------
@@ -914,6 +920,14 @@ starTable:
 
 stringPew:
     StringHi0   "PEW!"
+
+
+;-----------------------------------------------------------------------------
+; Messages
+;-----------------------------------------------------------------------------
+
+.include "message.asm"
+
 ;-----------------------------------------------------------------------------
 ; Paths
 ;-----------------------------------------------------------------------------
