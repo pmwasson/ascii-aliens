@@ -185,7 +185,7 @@ message_bad5:
     StringHi0   "BIFF!!"
 
 message_bad6:
-    StringHi0   "BOFF!!"
+    StringHi0   "OOOOF!"
 
 message_bad7:
     StringHi0   "BLAMO"
@@ -193,7 +193,7 @@ message_bad7:
 message_pew:
     StringHi0   "PEW!"
 
-message_clear:
+message_life:
     StringInv0  " --- NEXT LIFE --- "
 
 message_clear:

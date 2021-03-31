@@ -40,7 +40,7 @@ stringPtr1      :=  $FF
 KEY_QUIT        = $1b
 
 ; Actors
-ACTOR_SIZE      = 8
+ACTOR_SIZE      = 9
 ACTOR_MAX_COUNT = 8
 
 ACTOR_STATE     = 0     ; 0=inactive
@@ -51,7 +51,10 @@ ACTOR_X_HI      = 4     ; screen X
 ACTOR_Y_LO      = 5     ; decimal for Y
 ACTOR_Y_HI      = 6     ; screen Y
 ACTOR_COUNT     = 7     ; path counter
+ACTOR_WIDTH     = 8     ; width for collision detection
 
+; only one player sprite
+PLAYER_WIDTH    = 5
 
 .segment "CODE"
 .org    $C00
@@ -84,7 +87,7 @@ gameLoop:
     lda     playerY
     cmp     #23
     bpl     gameLoop            ; player is dead!
-    
+
     ; Bullet
     bit     bulletY
     bpl     update_bullet
@@ -174,7 +177,7 @@ paddle_middle:
     bne     :-
 
     ; set up message
-    lda     #8
+    lda     #3
     sta     message_x
     lda     #13
     sta     message_y
@@ -196,16 +199,16 @@ paddle_middle:
 ;   y_lo            - decimal
 ;   y_hi            - screen coordinate
 ;   count           -
-
+;   width           - (for collision, should this be extracted from shape?)
 level1:
-    ;       active,shape,path,xlo,xhi,ylo,yhi,count
-    .byte   1,     10,   0,   0,  2,  0,  256-7,  0   
-    .byte   1,     6,    0,   0,  8,  0,  256-9,  0   
-    .byte   1,     6,    0,   0,  14, 0,  256-10,  0   
-    .byte   1,     6,    0,   0,  20, 0,  256-10,  0   
-    .byte   1,     6,    0,   0,  26, 0,  256-9,  0   
-    .byte   1,     10,   0,   0,  31, 0,  256-7,  0   
-    .byte   1,     8,    0,   0,  16, 0,  256-5,  0   
+    ;       active,shape,path,xlo,xhi,ylo,yhi,count, width
+    .byte   1,     10,   0,   0,  2,  0,  256-7,  0, 5   
+    .byte   1,     6,    0,   0,  8,  0,  256-9,  0, 4   
+    .byte   1,     6,    0,   0,  14, 0,  256-10, 0, 4   
+    .byte   1,     6,    0,   0,  20, 0,  256-10, 0, 4   
+    .byte   1,     6,    0,   0,  26, 0,  256-9,  0, 4   
+    .byte   1,     10,   0,   0,  31, 0,  256-7,  0, 5   
+    .byte   1,     8,    0,   0,  16, 0,  256-5,  0, 6   
     .res    (8*(8-7))
 
 level1_message:
@@ -295,6 +298,7 @@ actor_next:
     clc
     adc     #ACTOR_SIZE
     cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
+
     bne     actor_loop
 
     ; done with list
@@ -321,13 +325,16 @@ bullet:
 
     ; check X
 
+    ; actor_left <= bullet
     lda     actors+ACTOR_X_HI,x
     cmp     bulletX
+    beq     :+
     bpl     player
+:
     sta     message_x
 
     clc 
-    adc     #5
+    adc     actors+ACTOR_WIDTH,x
     cmp     bulletX
     bmi     player
 
@@ -353,19 +360,26 @@ player:
 
     ; check X
 
+    ; player_left < actor-right
+    clc
     lda     actors+ACTOR_X_HI,x
-    cmp     playerX
-    bpl     update_coord
     sta     message_x
+    adc     actors+ACTOR_WIDTH,x
 
-    clc 
-    adc     #5
     cmp     playerX
+    bmi     update_coord
+
+    ; actor-left < player-right
+    clc 
+    lda     playerX
+    adc     #PLAYER_WIDTH
+    cmp     actors+ACTOR_X_HI,x
     bmi     update_coord
 
     ; move player off-screen
     lda     #24
     sta     playerY
+
 
 kill:
     ; clear bullet
