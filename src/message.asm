@@ -142,10 +142,15 @@ message_y:
 ; Message table
 ;-----------------------------------------------------------------------------
 
-MESSAGE_INDEX_PEW   = 8
-MESSAGE_INDEX_WAVE1 = 9
-MESSAGE_INDEX_WAVE2 = 10
-MESSAGE_INDEX_WAVE3 = 11
+MESSAGE_PEW     = 8
+MESSAGE_WAVE1   = 9
+MESSAGE_WAVE2   = 10
+MESSAGE_WAVE3   = 11
+MESSAGE_TITLE1  = 12
+MESSAGE_TITLE2  = 14
+MESSAGE_TITLE3  = 15
+MESSAGE_START   = 16
+MESSAGE_DONE    = 17
 
 message_list:
     .word   message_bad0
@@ -207,6 +212,22 @@ message_wave2:
 
 message_wave3:
     StringInv0  " --- WAVE THREE - CONCLUSION --- "
+
+message_title1:
+    StringHi0   "ASCII ALIENS"
+
+message_title2:
+    StringHi0   "BY PAUL WASSON, APRIL 2021"
+
+message_title3:
+    StringHi0   "PRESS JOYSTICK BUTTON TO BEGIN"
+
+message_start:
+    StringInv0  " --- PLAYER START --- "
+
+message_done:
+    StringInv0  " --- GAME OVER --- "
+
 
 ;-----------------------------------------------------------------------------
 ; Message Data

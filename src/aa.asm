@@ -105,7 +105,7 @@ gameLoop:
     sta     bulletY
     jsr     sound_shoot
 
-    lda     #MESSAGE_INDEX_PEW
+    lda     #MESSAGE_PEW
     ldx     #3  ; display time
     jsr     set_message
 
@@ -181,7 +181,7 @@ paddle_middle:
     sta     message_x
     lda     #13
     sta     message_y
-    lda     #MESSAGE_INDEX_WAVE1
+    lda     #MESSAGE_WAVE1
     ldx     #10
     jsr     set_message
 
