@@ -39,22 +39,11 @@ stringPtr1      :=  $FF
 ; Key bindings
 KEY_QUIT        = $1b
 
-; Actors
-ACTOR_SIZE      = 9
-ACTOR_MAX_COUNT = 8
-
-ACTOR_STATE     = 0     ; 0=inactive
-ACTOR_SHAPE     = 1     ; Base sprite
-ACTOR_PATH      = 2     ; Path index
-ACTOR_X_LO      = 3     ; decimal for X
-ACTOR_X_HI      = 4     ; screen X
-ACTOR_Y_LO      = 5     ; decimal for Y
-ACTOR_Y_HI      = 6     ; screen Y
-ACTOR_COUNT     = 7     ; path counter
-ACTOR_WIDTH     = 8     ; width for collision detection
-
 ; only one player sprite
 PLAYER_WIDTH    = 5
+
+; Active player postion
+PLAYER_ACTIVE_Y = 20
 
 .segment "CODE"
 .org    $C00
@@ -66,13 +55,20 @@ PLAYER_WIDTH    = 5
     lda     #$15
     jsr     COUT
 
-    jsr     set_level_1
+    ;jsr     set_level_1
 
 
 gameLoop:
     inc     gameClock
 
+    ; divide clock by 16
+    lda     #$f
+    and     gameClock
+    sta     gameTick
+
     jsr     draw_screen
+
+    jsr     seq_step
 
     jsr     get_input
 
@@ -85,8 +81,7 @@ gameLoop:
     jsr     update_actors
 
     lda     playerY
-    cmp     #23
-    bpl     gameLoop            ; player is dead!
+    bmi     gameLoop            ; player is not active
 
     ; Bullet
     bit     bulletY
@@ -96,12 +91,12 @@ gameLoop:
     bpl     :+
     clc
     lda     playerX
-    sta     message_x
-    inc     message_x
+    sta     messageX
+    inc     messageX
     adc     #2
     sta     bulletX
     lda     playerY
-    sta     message_y
+    sta     messageY
     sta     bulletY
     jsr     sound_shoot
 
@@ -167,6 +162,9 @@ paddle_middle:
 
 .proc set_level_1
 
+    lda     #3
+    sta     shipCount
+
     ; copy level1 data
     ldx     #0
 :
@@ -178,9 +176,9 @@ paddle_middle:
 
     ; set up message
     lda     #3
-    sta     message_x
+    sta     messageX
     lda     #13
-    sta     message_y
+    sta     messageY
     lda     #MESSAGE_WAVE1
     ldx     #10
     jsr     set_message
@@ -263,278 +261,6 @@ gotKey:
 
 .endproc
 
-;-----------------------------------------------------------------------------
-; update_actors
-;-----------------------------------------------------------------------------
-; actor:
-;   state           - 0=inactive
-;   shape           -
-;   path_index      -
-;   x_lo            - decimal
-;   x_hi            - screen coordinate
-;   y_lo            - decimal
-;   y_hi            - screen coordinate
-;   count           -
-;
-; path:
-;   x
-;   y
-;   count
-;   next_path
-
-.proc update_actors
-
-    lda     #0              ; point to first actor
-    sta     activeCount
-
-actor_loop:
-    tax
-    lda     actors+ACTOR_STATE,x        ; state
-    bne     :+
-
-actor_next:
-    ; skip to next actor
-    txa
-    clc
-    adc     #ACTOR_SIZE
-    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
-
-    bne     actor_loop
-
-    ; done with list
-    rts
-
-:
-
-
-    ; Check for bullet collision
-    ;--------------------------------------
-
-bullet:
-    clc
-    lda     bulletY
-    bmi     player        ; if no bullet, skip
-
-    ; check Y
-
-    lda     actors+ACTOR_Y_HI,x
-    adc     #2
-    cmp     bulletY
-    bne     player
-    sta     message_y
-
-    ; check X
-
-    ; actor_left <= bullet
-    lda     actors+ACTOR_X_HI,x
-    cmp     bulletX
-    beq     :+
-    bpl     player
-:
-    sta     message_x
-
-    clc 
-    adc     actors+ACTOR_WIDTH,x
-    cmp     bulletX
-    bmi     player
-
-    jmp     kill
-
-    ; Check for player collision
-    ;--------------------------------------
-
-    ; check Y
-player:
-    clc
-    lda     playerY
-    cmp     #23
-    bpl     update_coord    ; no player
-
-    ; check Y
-
-    lda     actors+ACTOR_Y_HI,x
-    adc     #2
-    cmp     playerY
-    bne     update_coord
-    sta     message_y
-
-    ; check X
-
-    ; player_left < actor-right
-    clc
-    lda     actors+ACTOR_X_HI,x
-    sta     message_x
-    adc     actors+ACTOR_WIDTH,x
-
-    cmp     playerX
-    bmi     update_coord
-
-    ; actor-left < player-right
-    clc 
-    lda     playerX
-    adc     #PLAYER_WIDTH
-    cmp     actors+ACTOR_X_HI,x
-    bmi     update_coord
-
-    ; move player off-screen
-    lda     #24
-    sta     playerY
-
-
-kill:
-    ; clear bullet
-    lda     #$ff
-    sta     bulletY 
-
-    ; set actor to inactive
-    lda     #0
-    sta     actors,x
-    stx     temp
-
-
-    ; display message
-    ldx     #6      ; time
-    lda     gameClock
-    and     #7
-    jsr     set_message
-
-    ldx     temp
-    jmp     actor_next
-
-
-
-
-    ; Update Coordinates
-    ;--------------------------------------
-update_coord:
-    inc     activeCount
-    ldy     actors+ACTOR_PATH,x
-    lda     path+PATH_X,y
-    asl
-    bcs     x_neg
-    clc
-    adc     actors+ACTOR_X_LO,x        
-    sta     actors+ACTOR_X_LO,x     ; x_lo = path_x + x_lo
-
-    lda     actors+ACTOR_X_HI,x
-    adc     #0
-    sta     actors+ACTOR_X_HI,x     ; x_hi = x_hi + carry
-
-    jmp     do_y
-
-x_neg:
-    ; carry already set
-    sta     temp                    ; remember value to subtract
-    lda     actors+ACTOR_X_LO,x        
-    sbc     temp 
-    sta     actors+ACTOR_X_LO,x     ; x_lo = x_lo - path_x
-
-    lda     actors+ACTOR_X_HI,x
-    sbc     #0
-    sta     actors+ACTOR_X_HI,x     ; x_hi = x_hi - !carry
-
-do_y:
-
-    lda     path+PATH_Y,y           ; path_y
-    asl
-    bcs     y_neg
-    clc
-    adc     actors+ACTOR_Y_LO,x        
-    sta     actors+ACTOR_Y_LO,x     ; y_lo = path_y + y_lo
-
-    lda     actors+ACTOR_Y_HI,x
-    adc     #0
-    sta     actors+ACTOR_Y_HI,x     ; y_hi = y_hi + carry
-    jmp     do_path
-
-y_neg:
-    ; carry already set
-    sta     temp                    ; remember value to subtract
-    lda     actors+ACTOR_Y_LO,x        
-    sbc     temp      
-    sta     actors+ACTOR_Y_LO,x     ; y_lo = y_lo - path_y
-
-    lda     actors+ACTOR_Y_HI,x
-    sbc     #0
-    sta     actors+ACTOR_Y_HI,x     ; y_hi = y_hi - !carry
-
-do_path:
-    inc     actors+ACTOR_COUNT,x    ; increment count
-    lda     actors+ACTOR_COUNT,x    ; actor_count
-    cmp     path+PATH_COUNT,y       ; path_count
-    bne     path_good
-
-    lda     #0
-    sta     actors+ACTOR_X_LO,x     ; reset x_lo to avoid accumulated error
-    sta     actors+ACTOR_Y_LO,x     ; reset y_lo to avoid accumulated error
-    sta     actors+ACTOR_COUNT,x    ; reset count
-    lda     path+PATH_NEXT,y        ; next_path
-    sta     actors+ACTOR_PATH,x     ; path = next_path
-
-path_good:
-    jmp     actor_next
-
-
-temp:   .byte   0
-
-.endproc
-
-
-;-----------------------------------------------------------------------------
-; draw_actors
-;-----------------------------------------------------------------------------
-; actor:
-;   state           - 0=inactive
-;   shape           -
-;   path_index      -
-;   x_lo            - decimal
-;   x_hi            - screen coordinate
-;   y_lo            - decimal
-;   y_hi            - screen coordinate
-;   count           -
-
-.proc draw_actors
-
-    ; set up animation value
-    lda     gameClock
-    lsr
-    lsr
-    lsr
-    lsr
-    and     #1
-    sta     animate
-
-    lda     #0              ; point to first actor
-
-actor_loop:
-    sta     actor_index
-    tax
-    lda     actors,x        ; state
-    beq     :+
-
-    lda     actors+ACTOR_X_HI,x
-    sta     spriteX
-    lda     actors+ACTOR_Y_HI,x
-    sta     spriteY
-    lda     actors+ACTOR_SHAPE,x
-    eor     animate
-    jsr     draw_sprite
-
-:
-    ; next actor
-    clc
-    lda     actor_index
-    adc     #ACTOR_SIZE
-    cmp     #ACTOR_MAX_COUNT*ACTOR_SIZE
-    bne     actor_loop
-
-    ; done with list
-    rts
-
-actor_index:    .byte   0
-animate:        .byte   0
-.endproc
-
 
 ;-----------------------------------------------------------------------------
 ; draw_screen
@@ -562,10 +288,11 @@ pageSelect:
     jsr     draw_actors
 
     ; draw ship
+    lda     playerY
+    bmi     draw_bullet     ; no ship
+    sta     spriteY  
     lda     playerX
     sta     spriteX
-    lda     playerY
-    sta     spriteY  
     lda     #0
     bit     BUTTON0
     bpl     :+
@@ -573,8 +300,8 @@ pageSelect:
 :
     jsr     draw_sprite
 
-
     ; draw bullet
+draw_bullet:
     lda     bulletX
     ldy     bulletY
     bmi     :+
@@ -583,16 +310,16 @@ pageSelect:
 :
 
     ; draw lives
-    lda     #0
-    sta     spriteX
-    lda     #23
-    sta     spriteY
-    lda     #5
-    jsr     draw_sprite
-
+    jsr     draw_ships
 
     ; draw messages last (so never covered up!)
     jsr     draw_messages
+
+    ; debug
+    lda     #0
+    ldy     #0
+    ldx     seqIndex
+    jsr     draw_value
 
     ; Set display page
     ;-------------------------------------------------------------------------
@@ -676,6 +403,29 @@ rowLoop:
     dec     starOffset
     rts
 
+.endproc
+
+
+;-----------------------------------------------------------------------------
+; draw_ships
+;-----------------------------------------------------------------------------
+.proc draw_ships
+    clc
+    ldy     #23
+    lda     lineOffset,y    ; + lineOffset
+    sta     screenPtr0    
+    lda     linePage,y
+    adc     drawPage        ; previous carry should be clear
+    sta     screenPtr1
+    ldy     shipCount
+    beq     :+
+    lda     #'^'|$80
+loop:
+    sta     (screenPtr0),y
+    dey
+    bne     loop
+:
+    rts
 .endproc
 
 ;-----------------------------------------------------------------------------
@@ -865,6 +615,7 @@ drawY:      .byte   0
 ;-----------------------------------------------------------------------------
 
 gameClock:      .byte   0
+gameTick:       .byte   0
 
 drawPage:       .byte   4   ; 4 or 8
 drawNextPage:   .byte   8   ; 8 or C
@@ -875,7 +626,7 @@ spriteY:        .byte   0
 starOffset:     .byte   0
 
 playerX:        .byte   (40-5)/2
-playerY:        .byte   23-3
+playerY:        .byte   $ff
 playerSprite:   .byte   0
 
 paddlePosition: .byte   0
@@ -883,9 +634,7 @@ paddlePosition: .byte   0
 bulletX:        .byte   0
 bulletY:        .byte   $ff
 
-activeCount:    .byte   0
-
-actors:         .res    ACTOR_SIZE*ACTOR_MAX_COUNT
+shipCount:      .byte   0
 
 ; Lookup tables
 ;-----------------------------------------------------------------------------
@@ -967,16 +716,22 @@ stringPew:
 
 
 ;-----------------------------------------------------------------------------
+; Sequence
+;-----------------------------------------------------------------------------
+
+.include "sequence.asm"
+
+;-----------------------------------------------------------------------------
 ; Messages
 ;-----------------------------------------------------------------------------
 
 .include "message.asm"
 
 ;-----------------------------------------------------------------------------
-; Paths
+; Actors
 ;-----------------------------------------------------------------------------
 
-.include "path.asm"
+.include "actors.asm"
 
 ;-----------------------------------------------------------------------------
 ; Game Sprites

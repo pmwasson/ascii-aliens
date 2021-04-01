@@ -21,8 +21,8 @@ MESSAGE_LIST_PTR1   = 1
 ; set_message
 ; a = message #
 ; x = time
-; message_x - col
-; message_y = row
+; messageX - col
+; messageY = row
 ;-----------------------------------------------------------------------------
 
 .proc set_message
@@ -30,9 +30,9 @@ MESSAGE_LIST_PTR1   = 1
     ldy     message_write_ptr
     txa     ; time
     sta     message_array+MESSAGE_ENTRY_TIME,y  ; set time
-    lda     message_x
+    lda     messageX
     sta     message_array+MESSAGE_ENTRY_X,y     ; set col
-    lda     message_y
+    lda     messageY
     sta     message_array+MESSAGE_ENTRY_Y,y     ; set row
 
     asl     message_index       ; * 2 since words
@@ -103,8 +103,7 @@ string_loop:
     bne     string_loop
 
 update_time:
-    lda     gameClock
-    and     #$f             ; divide clock by 16
+    lda     gameTick
     bne     next_entry
 
     ldx     message_read_ptr
@@ -128,13 +127,34 @@ message_read_ptr:
 
 
 ;-----------------------------------------------------------------------------
+; clear_messages
+; 
+; Note: doesn't bother to reset write pointer
+;-----------------------------------------------------------------------------
+
+.proc clear_messages
+    ldy     #0
+loop:
+    lda     #0
+    sta     message_array+MESSAGE_ENTRY_TIME,y
+    clc
+    tya
+    adc     #MESSAGE_ENTRY_SIZE
+    tay
+    cpy     #MESSAGE_ENTRY_SIZE*MESSAGE_ENTRY_MAX
+    bne     loop
+    rts
+
+.endproc
+
+;-----------------------------------------------------------------------------
 ; Interface
 ;-----------------------------------------------------------------------------
 
-message_x:
+messageX:
     .byte   0
 
-message_y:
+messageY:
     .byte   0
 
 
@@ -143,28 +163,35 @@ message_y:
 ;-----------------------------------------------------------------------------
 
 MESSAGE_PEW     = 8
-MESSAGE_WAVE1   = 9
-MESSAGE_WAVE2   = 10
-MESSAGE_WAVE3   = 11
-MESSAGE_TITLE1  = 12
-MESSAGE_TITLE2  = 14
-MESSAGE_TITLE3  = 15
-MESSAGE_START   = 16
-MESSAGE_DONE    = 17
+MESSAGE_WAVE1   = 11
+MESSAGE_WAVE2   = 12
+MESSAGE_WAVE3   = 13
+MESSAGE_TITLE1  = 14
+MESSAGE_TITLE2  = 15
+MESSAGE_TITLE3  = 16
+MESSAGE_START   = 17
+MESSAGE_DONE    = 18
 
 message_list:
-    .word   message_bad0
+    .word   message_bad0        ;0
     .word   message_bad1
     .word   message_bad2
     .word   message_bad3
-    .word   message_bad4
+    .word   message_bad4        ; 4
     .word   message_bad5
     .word   message_bad6
     .word   message_bad7
-    .word   message_pew
+    .word   message_pew         ; 8
+    .word   message_life
+    .word   message_clear
     .word   message_wave1
-    .word   message_wave2
+    .word   message_wave2       ; 12
     .word   message_wave3
+    .word   message_title1
+    .word   message_title2
+    .word   message_title3      ; 16
+    .word   message_start
+    .word   message_done
 
 
 ;-----------------------------------------------------------------------------
