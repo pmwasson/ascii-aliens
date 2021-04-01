@@ -316,9 +316,15 @@ draw_bullet:
     jsr     draw_messages
 
     ; debug
+
     lda     #0
     ldy     #0
     ldx     seqIndex
+    jsr     draw_value
+
+    lda     #0
+    ldy     #1
+    ldx     delayTimer
     jsr     draw_value
 
     ; Set display page

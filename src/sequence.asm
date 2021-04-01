@@ -43,11 +43,7 @@ delay:
     bne     delayInt
 
     jsr     seq_delay
-
     bcc     :+
-
-    sta     LOWSCR     
-    brk
 
     ; go to next instruction
     iny
@@ -65,6 +61,8 @@ delayInt:
     bpl     :+
 
     ; interrupted by button
+    lda     #0
+    sta     delayTimer
     lda     seq_start+2,y
     sta     seqIndex
     rts
@@ -156,6 +154,9 @@ add_ship:
 
     inc     shipCount
     inc     seqIndex        ; go to next instruction
+
+    jsr     sound_add_ship
+
     rts    
 
 add_player:
@@ -168,8 +169,12 @@ add_player:
     rts    
 
 add_actor:
-    cmp     #SEQ_ADD_MSG
+    cmp     #SEQ_ADD_ACT
     bne     sub_ship
+
+    ;FIXME - add to arguments
+    lda     #1
+    sta     actorState
 
     lda     seq_start+1,y
     sta     actorShape
@@ -184,8 +189,9 @@ add_actor:
     ; go to next instruction
     clc
     lda     seqIndex
-    adc     #4
+    adc     #5
     sta     seqIndex
+    rts
 
 sub_ship:
     cmp     #SEQ_SUB_SHP
@@ -203,6 +209,7 @@ sub_ship:
     bne     :+
     sta     seqIndex     
 :
+    rts
 
 set_chk:
     cmp     #SEQ_SET_CKP
@@ -257,8 +264,6 @@ seqCheckPoint:  .byte   0
     sec
     rts
 
-delayTimer:     .byte   0
-
 .endproc
 
 
@@ -267,15 +272,19 @@ delayTimer:     .byte   0
 ;-----------------------------------------------------------------------------
 
 seqIndex:       .byte   0
+delayTimer:     .byte   0
 
 ;-----------------------------------------------------------------------------
 ; Sequence Data
 ;-----------------------------------------------------------------------------
 
+.align 256
+
 SEQ_DEATH = seq_lost_ship - seq_start
 
 seq_start:
     ; clear everything
+    .byte   SEQ_SET_CKP
     .byte   SEQ_CLR_MSG
     .byte   SEQ_CLR_SHP
     .byte   SEQ_CLR_PLY
@@ -291,27 +300,29 @@ seq_start:
     .byte   SEQ_JMP,        seq_start - seq_start
 seq_game_start:
     ; pre-level
+    .byte   SEQ_SET_CKP
     .byte   SEQ_CLR_MSG
-    .byte   SEQ_ADD_MSG,    10, MESSAGE_START,  11, 5
-    .byte   SEQ_ADD_SHP
+    .byte   SEQ_ADD_MSG,    10, MESSAGE_START,  9, 16
     .byte   SEQ_DLY,        2
     .byte   SEQ_ADD_SHP
-    .byte   SEQ_DLY,        2
+    .byte   SEQ_DLY,        1
     .byte   SEQ_ADD_SHP
-    .byte   SEQ_DLY,        2
-    .byte   SEQ_ADD_PLY         ; Give player control
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ADD_SHP
     .byte   SEQ_DLY,        5
-    .byte   SEQ_ADD_MSG,    10, MESSAGE_WAVE1,  11, 5
-    .byte   SEQ_DLY,        11
+    .byte   SEQ_ADD_PLY     ; Give player control
+    .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_MSG,    10, MESSAGE_WAVE1,  3, 5
+    .byte   SEQ_DLY,        10
     ; First 4
     .byte   SEQ_SET_CKP
     .byte   SEQ_ADD_ACT,    6, 4, 256-5, 0
-    .byte   SEQ_DLY,        3
-    .byte   SEQ_ADD_ACT,    6, 12, 256-5, 0
-    .byte   SEQ_DLY,        3
-    .byte   SEQ_ADD_ACT,    6, 20, 256-5, 0
-    .byte   SEQ_DLY,        3
-    .byte   SEQ_ADD_ACT,    6, 28, 256-5, 0
+;    .byte   SEQ_DLY,        3
+;    .byte   SEQ_ADD_ACT,    6, 12, 256-5, 0
+;    .byte   SEQ_DLY,        3
+;    .byte   SEQ_ADD_ACT,    6, 20, 256-5, 0
+;    .byte   SEQ_DLY,        3
+;    .byte   SEQ_ADD_ACT,    6, 28, 256-5, 0
     .byte   SEQ_DLY_ACT
     ; Next 3
     .byte   SEQ_SET_CKP

@@ -41,9 +41,9 @@ loop2:
 .endproc
 
 ;-----------------------------------------------------------------------------
-; sound_bump
+; sound_boom
 ;-----------------------------------------------------------------------------
-.proc sound_bump
+.proc sound_boom
     lda     #100        ; tone
     ldx     #20         ; duration
     jsr     sound_tone
@@ -53,9 +53,9 @@ loop2:
 .endproc
 
 ;-----------------------------------------------------------------------------
-; sound_talk
+; sound_add_ship
 ;-----------------------------------------------------------------------------
-.proc sound_talk
+.proc sound_add_ship
     lda     #60         ; tone
     ldx     #15         ; duration
     jsr     sound_tone  ; link returns

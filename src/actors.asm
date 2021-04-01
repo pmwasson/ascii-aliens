@@ -140,6 +140,9 @@ kill:
     and     #7
     jsr     set_message
 
+    ; sound effect
+    jsr     sound_boom
+
     ldx     temp
     jmp     actor_next
 
