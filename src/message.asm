@@ -171,7 +171,8 @@ MESSAGE_TITLE2  = 15
 MESSAGE_TITLE3  = 16
 MESSAGE_START   = 17
 MESSAGE_DONE    = 18
-MESSAGE_WON     = 19
+MESSAGE_WON1    = 19
+MESSAGE_WON2    = 20
 
 message_list:
     .word   message_bad0        ;0
@@ -193,7 +194,8 @@ message_list:
     .word   message_title3      ; 16
     .word   message_start
     .word   message_done
-    .word   message_won
+    .word   message_won1
+    .word   message_won2
 
 
 ;-----------------------------------------------------------------------------
@@ -257,8 +259,11 @@ message_start:
 message_done:
     StringInv0  " --- GAME OVER --- "
 
-message_won:
+message_won1:
     StringInv0  " --- YOU WON! --- "
+
+message_won2:
+    StringHi0  "THANKS FOR PLAYING"
 
 
 ;-----------------------------------------------------------------------------

@@ -5,6 +5,10 @@
 
 .align 256
 
+SPRITE_BAD0 = 6
+SPRITE_BAD1 = 8
+SPRITE_BAD2 = 10
+
 spriteSheet:
 
 sprite_playerShip_0:

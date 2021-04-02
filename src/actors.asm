@@ -21,6 +21,15 @@ ACTOR_PATH_RESET    = 9     ; initial path
 ACTOR_X_RESET       = 10    ; initial X
 ACTOR_Y_RESET       = 11    ; initial Y
 
+; For collision detection
+
+; only one player sprite
+PLAYER_WIDTH    = 5
+PLAYER_HEIGHT   = 2
+
+; All aliens have same height
+ACTOR_HEIGHT = 3
+
 ;-----------------------------------------------------------------------------
 ; update_actors
 ;-----------------------------------------------------------------------------
@@ -57,15 +66,23 @@ bullet:
 
     ; check Y
 
+    ; actor_top < bullet
     lda     actors+ACTOR_Y_HI,x
-    adc     #2
     cmp     bulletY
-    bne     player
+    beq     :+
+    bpl     player
+:
+
+    ; actor_botom > bullet
+    clc 
+    adc     #ACTOR_HEIGHT
     sta     messageY
+    cmp     bulletY
+    bmi     player
 
     ; check X
 
-    ; actor_left <= bullet
+    ; actor_left < bullet
     lda     actors+ACTOR_X_HI,x
     cmp     bulletX
     beq     :+
@@ -73,6 +90,7 @@ bullet:
 :
     sta     messageX
 
+    ; actor_right > bullet
     clc 
     adc     actors+ACTOR_WIDTH,x
     cmp     bulletX
@@ -91,11 +109,20 @@ player:
 
     ; check Y
 
+    ; player_top < actor_bottom
+    clc
     lda     actors+ACTOR_Y_HI,x
-    adc     #2
-    cmp     playerY
-    bne     update_coord
     sta     messageY
+    adc     #ACTOR_HEIGHT
+    cmp     playerY
+    bmi     update_coord
+
+    ; actor-top < player-bottom
+    clc 
+    lda     playerY
+    adc     #PLAYER_HEIGHT
+    cmp     actors+ACTOR_Y_HI,x
+    bmi     update_coord
 
     ; check X
 
@@ -425,6 +452,8 @@ PATH_NEXT   = 3     ; next path
 .align 256
 
 PATH_0_START = path_0 - path
+PATH_1_START = path_1 - path
+PATH_2_START = path_2 - path
 
 path:
 
@@ -438,14 +467,9 @@ path_0:
     .byte   0   ,   0   ,   127 ,   0   ;   11  27  11  27  0.5     0   0   0.00    11  27
 
 path_1:
-    ; Use a spread sheet to figure out paths
-    .byte   14  ,   49  ,   29  ,   4   ;   2   -9  5   2   0.4     3   11  11.40
-    .byte   0   ,   0   ,   153 ,   8   ;   5   2   5   2   0.4     0   0   0.00
-    .byte   12  ,   24  ,   22  ,   12  ;   5   2   7   6   0.2     2   4   4.47
-    .byte   148 ,   16  ,   32  ,   16  ;   7   6   2   10  0.2     -5  4   6.40
-    .byte   0   ,   0   ,   204 ,   20  ;   2   10  2   10  0.2     0   0   0.00
-    .byte   39  ,   52  ,   10  ,   24  ;   2   10  5   14  0.5     3   4   5.00
-    .byte   0   ,   0   ,   25  ,   28  ;   5   14  5   14  0.9     0   0   0.00
-    .byte   133 ,   25  ,   72  ,   32  ;   5   14  2   28  0.2     -3  14  14.32
-    .byte   0   ,   0   ,   0   ,   0   ; 
+    ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
+    .byte   0   ,   39  ,   103 ,   0   ;   4   -3  4   28  0.3     0   31  31.00   4   28
 
+path_2:
+    ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
+    .byte   0   ,   64  ,   62  ,   0   ;   4   -3  4   28  0.5     0   31  31.00   4   28

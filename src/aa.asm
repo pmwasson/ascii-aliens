@@ -39,9 +39,6 @@ stringPtr1      :=  $FF
 ; Key bindings
 KEY_QUIT        = $1b
 
-; only one player sprite
-PLAYER_WIDTH    = 5
-
 ; Active player postion
 PLAYER_ACTIVE_Y = 20
 PLAYER_ACTIVE_X = (40-5)/2
@@ -159,65 +156,6 @@ paddle_middle:
 .endproc
 
 ;-----------------------------------------------------------------------------
-; set_level_1
-;-----------------------------------------------------------------------------
-; Reset game state for level 1
-
-.proc set_level_1
-
-    lda     #3
-    sta     shipCount
-
-    ; copy level1 data
-    ldx     #0
-:
-    lda     level1,x
-    sta     actors,x
-    inx
-    cpx     #ACTOR_SIZE*ACTOR_MAX_COUNT
-    bne     :-
-
-    ; set up message
-    lda     #3
-    sta     messageX
-    lda     #13
-    sta     messageY
-    lda     #MESSAGE_WAVE1
-    ldx     #10
-    jsr     set_message
-
-    ; reset game clock
-    lda     #0
-    sta     gameClock
-
-    rts
-
-;   state           - 0=inactive
-;   shape           -
-;   path_index      -
-;   x_lo            - decimal
-;   x_hi            - screen coordinate
-;   y_lo            - decimal
-;   y_hi            - screen coordinate
-;   count           -
-;   width           - (for collision, should this be extracted from shape?)
-level1:
-    ;       active,shape,path,xlo,xhi,ylo,yhi,count, width
-    .byte   1,     10,   0,   0,  2,  0,  256-7,  0, 5   
-    .byte   1,     6,    0,   0,  8,  0,  256-9,  0, 4   
-    .byte   1,     6,    0,   0,  14, 0,  256-10, 0, 4   
-    .byte   1,     6,    0,   0,  20, 0,  256-10, 0, 4   
-    .byte   1,     6,    0,   0,  26, 0,  256-9,  0, 4   
-    .byte   1,     10,   0,   0,  31, 0,  256-7,  0, 5   
-    .byte   1,     8,    0,   0,  16, 0,  256-5,  0, 6   
-    .res    (8*(8-7))
-
-level1_message:
-    StringInv0   "WAVE 1"
-
-.endproc
-
-;-----------------------------------------------------------------------------
 ; get_input
 ;-----------------------------------------------------------------------------
 ; Return key with bit 7 clear, or -1
@@ -318,17 +256,17 @@ draw_bullet:
     ; draw messages last (so never covered up!)
     jsr     draw_messages
 
-    ; debug
-
-    lda     #0
-    ldy     #0
-    ldx     seqIndex
-    jsr     draw_value
-
-    lda     #0
-    ldy     #1
-    ldx     delayTimer
-    jsr     draw_value
+;    ; debug
+;
+;    lda     #0
+;    ldy     #0
+;    ldx     seqIndex
+;    jsr     draw_value
+;
+;    lda     #0
+;    ldy     #1
+;    ldx     delayTimer
+;    jsr     draw_value
 
     ; Set display page
     ;-------------------------------------------------------------------------

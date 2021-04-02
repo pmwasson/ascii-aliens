@@ -298,10 +298,10 @@ seq_start:
     .byte   SEQ_CLR_ACT
 
     ; title sequence
-    .byte   SEQ_DLY_INT,    5, seq_game_start - seq_start       ; 5
+    .byte   SEQ_DLY,        5                                   ; 5
     .byte   SEQ_ADD_MSG,    100-5, MESSAGE_TITLE1,  14, 5       ;         5.........90
     .byte   SEQ_DLY_INT,    15, seq_game_start - seq_start      ; 5+15
-    .byte   SEQ_ADD_MSG,    100-20, MESSAGE_TITLE2,  7, 20     ;           20......90
+    .byte   SEQ_ADD_MSG,    100-20, MESSAGE_TITLE2,  7, 20      ;          20......90
     .byte   SEQ_DLY_INT,    30, seq_game_start - seq_start      ; 20+30
     .byte   SEQ_ADD_MSG,    90-50, MESSAGE_TITLE3,  5, 12       ;             50...80
     .byte   SEQ_DLY_INT,    40, seq_game_start - seq_start      ; 50 + 40
@@ -321,33 +321,87 @@ seq_game_start:
     .byte   SEQ_DLY,        5
     .byte   SEQ_ADD_PLY     ; Give player control
     .byte   SEQ_DLY,        10
+
+
+    .byte   SEQ_JMP,        seq_wave_2 - seq_start
+
+seq_wave_1:
     .byte   SEQ_ADD_MSG,    10, MESSAGE_WAVE1,  3, 5
     .byte   SEQ_DLY,        10
 
-    ; First
+    ; 1.1
     .byte   SEQ_SET_CKP
-    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
+    .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-3, PATH_0_START
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 12, 256-4, PATH_0_START
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 20, 256-5, PATH_0_START
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 28, 256-6, PATH_0_START
     .byte   SEQ_DLY_ACT
 
-    ; Next 3
+    ; 1.2
     .byte   SEQ_SET_CKP
-    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
-    .byte   SEQ_ADD_ACT,    6, 12, 256-4, PATH_0_START
+    .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 4,  256-3, PATH_1_START
+    .byte   SEQ_DLY,        2
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 12, 256-3, PATH_1_START
+    .byte   SEQ_DLY,        2
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 20, 256-3, PATH_1_START
+    .byte   SEQ_DLY,        2
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 28, 256-3, PATH_1_START
     .byte   SEQ_DLY_ACT
 
-    ; Final
+    ; 1.3
     .byte   SEQ_SET_CKP
+    .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
     .byte   SEQ_ADD_ACT,    6, 12, 256-4, PATH_0_START
     .byte   SEQ_ADD_ACT,    6, 20, 256-5, PATH_0_START
     .byte   SEQ_ADD_ACT,    6, 28, 256-6, PATH_0_START
     .byte   SEQ_DLY_ACT
 
-    ;
-    ; TODO - more waves
-    ;
+seq_wave_2:
+    .byte   SEQ_ADD_MSG,    10, MESSAGE_WAVE2,  3, 5
+    .byte   SEQ_DLY,        10
+
+    ; 2.1
+    .byte   SEQ_SET_CKP
+    .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 12, 256-4, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 20, 256-5, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 28, 256-6, PATH_0_START
+    .byte   SEQ_DLY_ACT
+
+    ; 2.2
+    .byte   SEQ_SET_CKP
+    .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 4,  256-3, PATH_2_START
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 12, 256-3, PATH_2_START
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 20, 256-3, PATH_2_START
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 28, 256-3, PATH_2_START
+    .byte   SEQ_DLY_ACT
+
+    ; 2.3
+    .byte   SEQ_SET_CKP
+    .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 12, 256-4, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 20, 256-5, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 28, 256-6, PATH_0_START
+    .byte   SEQ_DLY_ACT
+
+
 seq_game_won:
-    .byte   SEQ_ADD_MSG,    20, MESSAGE_WON,  11, 5    
+    .byte   SEQ_ADD_MSG,    20, MESSAGE_WON1,  11, 5    
+    .byte   SEQ_DLY,        15
+
+    .byte   SEQ_CLR_SHP
+    .byte   SEQ_CLR_PLY
+
+    .byte   SEQ_ADD_MSG,    20, MESSAGE_WON2,  11, 14    
     .byte   SEQ_DLY,        25
 
     ; Go back to title
@@ -375,10 +429,10 @@ seq_game_over:
     .byte   SEQ_CLR_PLY
     .byte   SEQ_CLR_ACT
     ; Display message
-    .byte   SEQ_ADD_MSG,    20, MESSAGE_DONE,  11, 5
+    .byte   SEQ_ADD_MSG,    30, MESSAGE_DONE,  11, 5
     ; De-bounce
-    .byte   SEQ_DLY,        5
+    .byte   SEQ_DLY,        10
     ; Go back to title
-    .byte   SEQ_DLY_INT,    20-5, seq_start - seq_start
+    .byte   SEQ_DLY_INT,    20, seq_start - seq_start
     .byte   SEQ_JMP,        seq_start - seq_start
 
