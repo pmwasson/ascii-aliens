@@ -20,9 +20,9 @@ SEQ_ADD_MSG     =   $80     ; time, message-index, x, y     display a message
 SEQ_ADD_SHP     =   $90     ;                               add a ship
 SEQ_ADD_PLY     =   $A0     ;                               display player
 SEQ_ADD_ACT     =   $B0     ; shape, x, y, path             add actor
-SEQ_SUB_SHP     =   $90     ; index                         remove ship, if none left goto index
-SEQ_SET_CKP     =   $C0     ;                               set checkpoint
-SEQ_JMP_CKP     =   $D0     ;                               jump to checkpoint
+SEQ_SUB_SHP     =   $C0     ; index                         remove ship, if none left goto index
+SEQ_SET_CKP     =   $D0     ;                               set checkpoint
+SEQ_JMP_CKP     =   $E0     ;                               jump to checkpoint
 SEQ_BRK         =   $FF     ;                               cause break
 
 .align 256
@@ -108,6 +108,9 @@ clear_ship:
     cmp     #SEQ_CLR_SHP
     bne     clear_player
 
+    lda     #0
+    sta     shipCount
+
     inc     seqIndex        ; go to next instruction
     rts
 
@@ -163,8 +166,12 @@ add_player:
     cmp     #SEQ_ADD_PLY
     bne     add_actor
 
+    ; set player coordinates
+    lda     #PLAYER_ACTIVE_X
+    sta     playerX
     lda     #PLAYER_ACTIVE_Y
     sta     playerY
+
     inc     seqIndex        ; go to next instruction
     rts    
 
@@ -180,7 +187,7 @@ add_actor:
     sta     actorShape
     lda     seq_start+2,y
     sta     actorX
-    ldx     seq_start+3,y
+    lda     seq_start+3,y
     sta     actorY
     lda     seq_start+4,y
     sta     actorPath
@@ -221,7 +228,7 @@ set_chk:
     rts  
 
 jump_chk:
-    cmp     #SEQ_SET_CKP
+    cmp     #SEQ_JMP_CKP
     bne     seq_error
 
     lda     seqCheckPoint
@@ -289,6 +296,7 @@ seq_start:
     .byte   SEQ_CLR_SHP
     .byte   SEQ_CLR_PLY
     .byte   SEQ_CLR_ACT
+
     ; title sequence
     .byte   SEQ_DLY_INT,    5, seq_game_start - seq_start       ; 5
     .byte   SEQ_ADD_MSG,    100-5, MESSAGE_TITLE1,  14, 5       ;         5.........90
@@ -298,6 +306,7 @@ seq_start:
     .byte   SEQ_ADD_MSG,    90-50, MESSAGE_TITLE3,  5, 12       ;             50...80
     .byte   SEQ_DLY_INT,    40, seq_game_start - seq_start      ; 50 + 40
     .byte   SEQ_JMP,        seq_start - seq_start
+
 seq_game_start:
     ; pre-level
     .byte   SEQ_SET_CKP
@@ -314,34 +323,33 @@ seq_game_start:
     .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_MSG,    10, MESSAGE_WAVE1,  3, 5
     .byte   SEQ_DLY,        10
-    ; First 4
+
+    ; First
     .byte   SEQ_SET_CKP
-    .byte   SEQ_ADD_ACT,    6, 4, 256-5, 0
-;    .byte   SEQ_DLY,        3
-;    .byte   SEQ_ADD_ACT,    6, 12, 256-5, 0
-;    .byte   SEQ_DLY,        3
-;    .byte   SEQ_ADD_ACT,    6, 20, 256-5, 0
-;    .byte   SEQ_DLY,        3
-;    .byte   SEQ_ADD_ACT,    6, 28, 256-5, 0
+    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
     .byte   SEQ_DLY_ACT
+
     ; Next 3
     .byte   SEQ_SET_CKP
-    .byte   SEQ_ADD_ACT,    10, 4, 256-5, 1
-    .byte   SEQ_ADD_ACT,    10, 12, 256-5, 1
-    .byte   SEQ_ADD_ACT,    10, 20, 256-5, 1
-    .byte   SEQ_ADD_ACT,    10, 28, 256-5, 1
+    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 12, 256-4, PATH_0_START
     .byte   SEQ_DLY_ACT
+
     ; Final
     .byte   SEQ_SET_CKP
-    .byte   SEQ_ADD_ACT,    8, 17, 256-5, 1
+    .byte   SEQ_ADD_ACT,    6, 4,  256-3, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 12, 256-4, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 20, 256-5, PATH_0_START
+    .byte   SEQ_ADD_ACT,    6, 28, 256-6, PATH_0_START
     .byte   SEQ_DLY_ACT
+
     ;
     ; TODO - more waves
     ;
 seq_game_won:
-    ;
-    ; TODO - winning sequence
-    ;
+    .byte   SEQ_ADD_MSG,    20, MESSAGE_WON,  11, 5    
+    .byte   SEQ_DLY,        25
+
     ; Go back to title
     .byte   SEQ_JMP,        seq_start - seq_start
 

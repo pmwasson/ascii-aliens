@@ -222,6 +222,7 @@ reset_path:
     sta     actors+ACTOR_X_HI,x
     lda     actors+ACTOR_Y_RESET,x
     sta     actors+ACTOR_Y_HI,x
+    ; LOs and COUNT reset above
 
 path_good:
     jmp     actor_next
@@ -423,11 +424,21 @@ PATH_NEXT   = 3     ; next path
 
 .align 256
 
+PATH_0_START = path_0 - path
+
 path:
 
 path_0:
-    ; Use a spread sheet to figure out paths
     ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
+    .byte   3   ,   13  ,   122 ,   4   ;   4   -3  6   9   0.1     2   12  12.17   6   9
+    .byte   0   ,   0   ,   51  ,   8   ;   6   9   6   9   0.8     0   0   0.00    6   9
+    .byte   140 ,   0   ,   40  ,   12  ;   6   9   2   9   0.1     -4  0   4.00    2   9
+    .byte   0   ,   0   ,   51  ,   16  ;   2   9   2   9   0.8     0   0   0.00    2   9
+    .byte   6   ,   12  ,   201 ,   20  ;   2   9   11  27  0.1     9   18  20.12   11  27
+    .byte   0   ,   0   ,   127 ,   0   ;   11  27  11  27  0.5     0   0   0.00    11  27
+
+path_1:
+    ; Use a spread sheet to figure out paths
     .byte   14  ,   49  ,   29  ,   4   ;   2   -9  5   2   0.4     3   11  11.40
     .byte   0   ,   0   ,   153 ,   8   ;   5   2   5   2   0.4     0   0   0.00
     .byte   12  ,   24  ,   22  ,   12  ;   5   2   7   6   0.2     2   4   4.47
@@ -436,5 +447,5 @@ path_0:
     .byte   39  ,   52  ,   10  ,   24  ;   2   10  5   14  0.5     3   4   5.00
     .byte   0   ,   0   ,   25  ,   28  ;   5   14  5   14  0.9     0   0   0.00
     .byte   133 ,   25  ,   72  ,   32  ;   5   14  2   28  0.2     -3  14  14.32
-    .byte   0   ,   153 ,   185 ,   36  ;   2   28  2   -9  0.2     0   -37 37.00
+    .byte   0   ,   0   ,   0   ,   0   ; 
 

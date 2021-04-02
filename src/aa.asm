@@ -44,6 +44,9 @@ PLAYER_WIDTH    = 5
 
 ; Active player postion
 PLAYER_ACTIVE_Y = 20
+PLAYER_ACTIVE_X = (40-5)/2
+
+PLAYER_INACTIVE_Y = 255
 
 .segment "CODE"
 .org    $C00
@@ -631,8 +634,8 @@ spriteY:        .byte   0
 
 starOffset:     .byte   0
 
-playerX:        .byte   (40-5)/2
-playerY:        .byte   $ff
+playerX:        .byte   PLAYER_ACTIVE_X
+playerY:        .byte   PLAYER_INACTIVE_Y
 playerSprite:   .byte   0
 
 paddlePosition: .byte   0

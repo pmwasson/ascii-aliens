@@ -7,5 +7,9 @@ java -jar C:\jar\AppleCommander.jar -p  aa_prodos.dsk aa.system sys < C:\cc65\ta
 java -jar C:\jar\AppleCommander.jar -as aa_prodos.dsk aa bin < aa.apple2 
 copy aa_prodos.dsk ..\disk
 
+copy ..\disk\template_dos33.do aa_dos33.do
+java -jar C:\jar\AppleCommander.jar -as aa_dos33.do askey bin < aa.apple2 
+copy aa_dos33.do ..\disk
+
 C:\AppleWin\Applewin.exe -no-printscreen-dlg -d1 aa_prodos.dsk
 
