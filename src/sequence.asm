@@ -265,8 +265,7 @@ sub_ship:
     cmp     #SEQ_SUB_SHP
     bne     set_chk
 
-    ; *** CHEAT!!! *** should be "dec"
-    inc     shipCount
+    dec     shipCount
     bne     :+
 
     ; jump to index
@@ -382,17 +381,20 @@ seq_start:
 
     ; title sequence
     .byte   SEQ_DLY,        5                                       ; 5
-    .byte   SEQ_ADD_MSG,    14, 5, 100-5, MESSAGE_TITLE1            ;         5.........90
+    .byte   SEQ_ADD_MSG,    14, 5, 120-5, MESSAGE_TITLE1            ;         5.........120
     .byte   SEQ_DLY_INT,    15, <seq_game_start, >seq_game_start    ; 5+15
-    .byte   SEQ_ADD_MSG,    7, 20, 100-20, MESSAGE_TITLE2           ;          20......90
+    .byte   SEQ_ADD_MSG,    7, 20, 115-20, MESSAGE_TITLE2           ;          20......115
     .byte   SEQ_DLY_INT,    30, <seq_game_start, >seq_game_start    ; 20+30
-    .byte   SEQ_ADD_MSG,    5, 12 , 90-50, MESSAGE_TITLE3           ;             50...80
-    .byte   SEQ_DLY_INT,    40, <seq_game_start, >seq_game_start    ; 50 + 40
+    .byte   SEQ_ADD_MSG,    5, 12 , 110-50, MESSAGE_TITLE3           ;             50...110
+    .byte   SEQ_DLY_INT,    10, <seq_game_start, >seq_game_start    ; 50 + 70
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 35,  256-3, PATH_TITLE, 1
+    .byte   SEQ_DLY_INT,    60, <seq_game_start, >seq_game_start    ; 50 + 70
     .byte   SEQ_JMP,        <seq_start, >seq_start
 
 seq_game_start:
     ; pre-level
     .byte   SEQ_SET_CKP
+    .byte   SEQ_CLR_ACT
     .byte   SEQ_CLR_MSG
     .byte   SEQ_ADD_MSG,    9, 16, 10, MESSAGE_START
     .byte   SEQ_DLY,        2

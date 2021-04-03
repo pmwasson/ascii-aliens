@@ -453,6 +453,7 @@ PATH_NEXT   = 3     ; next path
 
 .align 256
 
+PATH_TITLE      = path_title    - path
 PATH_CRAWL_1    = path_crawl_1  - path
 PATH_CRAWL_2    = path_crawl_2  - path
 PATH_FALL_1     = path_fall_1   - path
@@ -521,3 +522,10 @@ path_crawl_2:
     .byte   0   ,   0   ,   51  ,   144 ;   32  9   32  9   0.8     0   0   0.00    32  9   
     .byte   134 ,   12  ,   192 ,   148 ;   32  9   23  27  0.105   -9  18  20.12   23  27  
     .byte   0   ,   0   ,   127 ,   0   ;   23  27  23  27  0.5     0   0   0.00    23  27  
+
+path_title:
+    .byte   0   ,   12  ,   111 ,   156 ;   35  -3  35  7   0.09        0   10  10.00   35  7
+    .byte   139 ,   0   ,   189 ,   160 ;   35  7   18  7   0.09        -17 0   17.00   18  7
+    .byte   139 ,   0   ,   189 ,   164 ;   18  7   1   7   0.09        -17 0   17.00   1   7
+    .byte   0   ,   12  ,   233 ,   168 ;   1   7   1   28  0.09        0   21  21.00   1   28
+    .byte   0   ,   0   ,   242 ,   168 ;   1   28  1   28  0.05        0   0   0.00    1   28
