@@ -149,9 +149,27 @@ paddle_middle:
 ;-----------------------------------------------------------------------------
 
 .proc quit_game   
-
     sta     LOWSCR      ; Make sure exit onto screen 1
+    jsr     HOME
+    jsr     inline_print
+    .byte   "Thanks for playing!",13,13
+    .byte   "Useful jump locations:",13,13
+    .byte   " C600G   -- reboot",13
+    .byte   " 3D0G    -- basic prompt (if loaded)",13
+    .byte   " C00G    -- restart game",13
+    .byte   " C08G    -- continue game",13,0
+    lda     #8
+    sta     CV
+
+    ; clear out page $800 for basic
+    ldx     #0
+    lda     #0
+:    
+    sta     $800,x
+    inx
+    bne     :-
     jmp     MONZ
+
 
 .endproc
 
@@ -257,7 +275,7 @@ draw_bullet:
     jsr     draw_messages
 
     ; debug
-.if 1
+.if 0
     lda     #0
     ldy     #0
     ldx     seqPtr1

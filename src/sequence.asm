@@ -71,6 +71,8 @@ SEQ_ALR_LEN     =   1
     sta     seqPtr0
     lda     #>seq_start
     sta     seqPtr1
+    lda     #0
+    sta     delayTimer
     rts
 .endproc
 
@@ -459,6 +461,7 @@ seq_wave_1:
     .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_1, 5
     .byte   SEQ_DLY_ACT
+    .byte   SEQ_DLY,        10
 
 seq_wave_2:
     .byte   SEQ_ADD_MSG,    3, 5, 10, MESSAGE_WAVE2
@@ -493,7 +496,7 @@ seq_wave_2:
     .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_2, 10
     .byte   SEQ_DLY_ACT
-
+    .byte   SEQ_DLY,        10
 
 seq_wave_3:
     .byte   SEQ_ADD_MSG,    3, 5, 10, MESSAGE_WAVE3
@@ -531,11 +534,18 @@ seq_wave_3:
     .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_2, 20
     .byte   SEQ_DLY_ACT
+    .byte   SEQ_DLY,        10
 
 seq_boss:
     .byte   SEQ_SET_CKP
-    .byte   SEQ_ADD_MSG,    5, 5, 10, MESSAGE_BOSS
+    .byte   SEQ_DLY,        5
     .byte   SEQ_ALR
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ALR
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ALR
+    .byte   SEQ_DLY,        1
+    .byte   SEQ_ADD_MSG,    5, 5, 10, MESSAGE_BOSS
     .byte   SEQ_DLY,        20
     .byte   SEQ_ADD_ACT,    SPRITE_BOSSH,  17,  256-7, PATH_BOSS_1, 10
     .byte   SEQ_ADD_ACT,    SPRITE_BOSSAL, 14,  256-4, PATH_BOSS_3, 10

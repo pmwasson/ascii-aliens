@@ -81,10 +81,10 @@ loop2:
 ;-----------------------------------------------------------------------------
 .proc sound_alert
     lda     #175        ; tone
-    ldx     #32         ; duration
+    ldx     #24         ; duration
     jsr     sound_tone
     lda     #190        ; tone
-    ldx     #32         ; duration
+    ldx     #16         ; duration
     jmp     sound_tone  ; link returns
 .endproc
 
