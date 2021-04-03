@@ -156,8 +156,11 @@ kill:
     lda     #$ff
     sta     bulletY 
 
-    ; set actor to inactive
+    ; decrease state
     dec     actors+ACTOR_STATE,x
+    beq     :+
+    inc     activeCount     ; not dead yet!
+:
     stx     temp
 
     ; display message
@@ -454,6 +457,7 @@ PATH_CRAWL_1    = path_crawl_1  - path
 PATH_FALL_1     = path_fall_1   - path
 PATH_FALL_2     = path_fall_2   - path
 PATH_FALL_3     = path_fall_3   - path
+PATH_CIRCLE_1   = path_circle_1 - path
 
 path:
 
@@ -477,3 +481,12 @@ path_fall_2:
 path_fall_3:
     ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
     .byte   0   ,   91  ,   44  ,   0   ;   4   -3  4   28  0.7     0   31  31.00   4   28
+
+path_circle_1:
+    .byte   178 ,   41  ,   38  ,   40  ;   17  -3  2   9   0.5     -15 12  19.21   2   9
+    .byte   53  ,   37  ,   39  ,   44  ;   2   9   18  20  0.5     16  11  19.42   18  20
+    .byte   54  ,   163 ,   36  ,   48  ;   18  20  33  10  0.5     15  -10 18.03   33  10
+    .byte   189 ,   20  ,   65  ,   52  ;   33  10  2   20  0.5     -31 10  32.57   2   20
+    .byte   43  ,   176 ,   48  ,   56  ;   2   20  18  2   0.5     16  -18 24.08   18  2
+    .byte   41  ,   50  ,   47  ,   60  ;   18  2   33  20  0.5     15  18  23.43   33  20
+    .byte   188 ,   149 ,   66  ,   40  ;   33  20  2   9   0.5     -31 -11 32.89   2   9
