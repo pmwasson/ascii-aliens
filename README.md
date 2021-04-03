@@ -19,3 +19,9 @@ Using ca65 (part of the cc65 compiler) for assembling. https://cc65.github.io/
 AppleCommander to build disk images. https://applecommander.github.io/
 
 AppleWin for emulation. https://github.com/AppleWin/AppleWin
+
+## Flight-paths
+
+The following spreadsheet was used to calculate the flight-paths of the aliens:
+https://docs.google.com/spreadsheets/d/1ozsw1lrswBW2g3PjhNNP42zVof4XAn53S5O2YDWCB5A/edit?usp=sharing
+
