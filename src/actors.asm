@@ -78,6 +78,7 @@ bullet:
     adc     #ACTOR_HEIGHT
     sta     messageY
     cmp     bulletY
+    beq     player
     bmi     player
 
     ; check X
@@ -94,6 +95,7 @@ bullet:
     clc 
     adc     actors+ACTOR_WIDTH,x
     cmp     bulletX
+    beq     player
     bmi     player
 
     jmp     kill
@@ -115,6 +117,7 @@ player:
     sta     messageY
     adc     #ACTOR_HEIGHT
     cmp     playerY
+    beq     update_coord
     bmi     update_coord
 
     ; actor-top < player-bottom
@@ -122,6 +125,7 @@ player:
     lda     playerY
     adc     #PLAYER_HEIGHT
     cmp     actors+ACTOR_Y_HI,x
+    beq     update_coord
     bmi     update_coord
 
     ; check X
@@ -497,6 +501,7 @@ PATH_CIRCLE_2   = path_circle_2 - path
 PATH_BOSS_1     = path_boss_1   - path
 PATH_BOSS_2     = path_boss_2   - path
 PATH_BOSS_3     = path_boss_3   - path
+PATH_DEBUG      = path_debug    - path
 
 path:
 
@@ -539,10 +544,10 @@ path_circle_2:
     .byte   25  ,   30  ,   78  ,   120 ;   18  2   33  20  0.3     15  18  23.43   33  20
     .byte   164 ,   140 ,   110 ,   100 ;   33  20  2   9   0.3     -31 -11 32.89   2   9
 path_title:                                                                             
-    .byte   0   ,   20  ,   67  ,   128 ;   35  -3  35  7   0.15        0   10  10.00   35  7
-    .byte   147 ,   0   ,   227 ,   132 ;   35  7   1   7   0.15        -34 0   34.00   1   7
-    .byte   0   ,   20  ,   140 ,   136 ;   1   7   1   28  0.15        0   21  21.00   1   28
-    .byte   0   ,   0   ,   242 ,   136 ;   1   28  1   28  0.05        0   0   0.00    1   28
+    .byte   0   ,   20  ,   67  ,   128 ;   35  -3  35  7   0.15    0   10  10.00   35  7
+    .byte   147 ,   0   ,   227 ,   132 ;   35  7   1   7   0.15    -34 0   34.00   1   7
+    .byte   0   ,   20  ,   140 ,   136 ;   1   7   1   28  0.15    0   21  21.00   1   28
+    .byte   0   ,   0   ,   242 ,   136 ;   1   28  1   28  0.05    0   0   0.00    1   28
 path_boss_1:                                                                                
     .byte   0   ,   51  ,   53  ,   144 ;   17  -1  17  20  0.4     0   21  21.00   17  20
     .byte   0   ,   0   ,   51  ,   148 ;   17  20  17  20  0.8     0   0   0.00    17  20
@@ -555,17 +560,19 @@ path_boss_2:
     .byte   0   ,   51  ,   53  ,   172 ;   17  -1  17  20  0.4     0   21  21.00   17  20
     .byte   0   ,   0   ,   51  ,   176 ;   17  20  17  20  0.8     0   0   0.00    17  20
     .byte   171 ,   154 ,   38  ,   180 ;   17  20  4   12  0.4     -13 -8  15.26   4   12
-    .byte   51  ,   32  ,   33  ,   184 ;   4   12  17  20  0.46        13  8   15.26   17  20
-    .byte   52  ,   157 ,   35  ,   188 ;   17  20  31  12  0.46        14  -8  16.12   31  12
+    .byte   51  ,   32  ,   33  ,   184 ;   4   12  17  20  0.46    13  8   15.26   17  20
+    .byte   52  ,   157 ,   35  ,   188 ;   17  20  31  12  0.46    14  -8  16.12   31  12
     .byte   179 ,   0   ,   35  ,   192 ;   31  12  17  12  0.4     -14 0   14.00   17  12
     .byte   0   ,   0   ,   127 ,   196 ;   17  12  17  12  0.5     0   0   0.00    17  12
     .byte   178 ,   0   ,   33  ,   180 ;   17  12  4   12  0.4     -13 0   13.00   4   12
-path_boss_3:                                                                                
+path_boss_3:                                                                             
     .byte   0   ,   51  ,   53  ,   204 ;   17  -1  17  20  0.4     0   21  21.00   17  20
     .byte   0   ,   0   ,   51  ,   208 ;   17  20  17  20  0.8     0   0   0.00    17  20
     .byte   171 ,   154 ,   38  ,   212 ;   17  20  4   12  0.4     -13 -8  15.26   4   12
     .byte   51  ,   0   ,   68  ,   216 ;   4   12  31  12  0.4     27  0   27.00   31  12
     .byte   179 ,   0   ,   35  ,   220 ;   31  12  17  12  0.4     -14 0   14.00   17  12
-    .byte   0   ,   79  ,   13  ,   224 ;   17  12  17  20  0.6     0   8   8.00    17  20
-    .byte   0   ,   136 ,   114 ,   228 ;   17  20  17  12  0.07        0   -8  8.00    17  12
+    .byte   0   ,   79  ,   18  ,   224 ;   17  12  17  23  0.6     0   11  11.00   17  23
+    .byte   0   ,   140 ,   109 ,   228 ;   17  23  17  12  0.101   0   -11 11.00   17  12
     .byte   178 ,   0   ,   33  ,   212 ;   17  12  4   12  0.4     -13 0   13.00   4   12
+path_debug:
+    .byte   0   ,   0   ,   0   ,   0

@@ -464,7 +464,7 @@ seq_wave_1:
     .byte   SEQ_DLY,        10
 
 seq_wave_2:
-    .byte   SEQ_ADD_MSG,    3, 5, 10, MESSAGE_WAVE2
+    .byte   SEQ_ADD_MSG,    4, 5, 10, MESSAGE_WAVE2
     .byte   SEQ_DLY,        10
 
     ; 2.1
@@ -592,7 +592,7 @@ seq_game_over:
     ; Display message
     .byte   SEQ_ADD_MSG,    11, 5, 40, MESSAGE_DONE1
     .byte   SEQ_DLY,        10
-    .byte   SEQ_ADD_MSG,    16, 14, 30, MESSAGE_DONE2
+    .byte   SEQ_ADD_MSG,    15, 14, 30, MESSAGE_DONE2
     ; Go back to title
     .byte   SEQ_DLY_INT,    30, <seq_start, >seq_start
     .byte   SEQ_JMP,        <seq_start, >seq_start

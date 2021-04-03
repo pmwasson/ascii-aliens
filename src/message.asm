@@ -206,7 +206,7 @@ message_list:
 ;-----------------------------------------------------------------------------
 
 message_bad0:
-    StringHi0   "OUCH!!!"
+    StringHi0   "OUCH!!"
 
 message_bad1:
     StringHi0   "ARGGG!"
@@ -215,7 +215,7 @@ message_bad2:
     StringHi0   "BOOOOM"
 
 message_bad3:
-    StringHi0   "@#$%*@!"
+    StringHi0   "@#$%*!"
 
 message_bad4:
     StringHi0   "KA-POW"
@@ -227,7 +227,7 @@ message_bad6:
     StringHi0   "OOOOF!"
 
 message_bad7:
-    StringHi0   "BLAMO"
+    StringHi0   "BLAMO!"
 
 message_pew:
     StringHi0   "PEW!"

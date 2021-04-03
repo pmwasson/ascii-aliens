@@ -97,11 +97,12 @@ gameLoop:
     sta     bulletX
     lda     playerY
     sta     messageY
+    dec     messageY
     sta     bulletY
     jsr     sound_shoot
 
     lda     #MESSAGE_PEW
-    ldx     #3  ; display time
+    ldx     #2  ; display time
     jsr     set_message
 
 
@@ -112,16 +113,12 @@ update_bullet:
     dec     bulletY
 :
 
-
     ; Movement
     lda     paddlePosition
     bmi     paddle_left
     beq     paddle_middle
 
     ; must be right
-    ;lda     #0; 2
-    ;sta     playerSprite
-
     lda     playerX
     cmp     #39-4
     bpl     gameLoop
@@ -129,9 +126,6 @@ update_bullet:
     jmp     gameLoop
 
 paddle_left:
-    ;lda     #0; 1
-    ;sta     playerSprite
-
     lda     playerX
     beq     gameLoop
     dec     playerX
@@ -149,7 +143,9 @@ paddle_middle:
 ;-----------------------------------------------------------------------------
 
 .proc quit_game   
+
     sta     LOWSCR      ; Make sure exit onto screen 1
+
     jsr     HOME
     jsr     inline_print
     .byte   "Thanks for playing!",13,13
@@ -681,10 +677,6 @@ starTable:
     .byte   $1A, $25, $1F, $1F, $0E, $13, $25, $27, $04, $1C, $07, $1F, $05, $1F, $1E, $12
     .byte   $15, $0C, $12, $23, $24, $15, $14, $12, $0D, $17, $12, $16, $25, $1F, $03, $06
     .byte   $10, $25, $14, $21, $25, $1D, $11, $08, $20, $02, $1D, $02, $22, $1D, $0E, $15
-
-stringPew:
-    StringHi0   "PEW!"
-
 
 ;-----------------------------------------------------------------------------
 ; Sequence
