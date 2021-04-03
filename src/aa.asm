@@ -257,7 +257,7 @@ draw_bullet:
     jsr     draw_messages
 
     ; debug
-.if 0
+.if 1
     lda     #0
     ldy     #0
     ldx     seqPtr1

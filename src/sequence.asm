@@ -19,23 +19,26 @@ seqPtr1         :=  $FD
 
 ; Command       Encoding      Arguments                     Description
 ;-------------  --------      ----------------------------- -----------------------------------------------------
-SEQ_DLY         =   $00     ; time                          wait time
+SEQ_BRK         =   $00     ;                               cause break
+SEQ_DLY         =   $08     ; time                          wait time
 SEQ_DLY_INT     =   $10     ; time index*2                  wait time, index to jump to if interrupted by button
-SEQ_DLY_ACT     =   $20     ;                               wait until no actors
-SEQ_JMP         =   $30     ; index*2                       jump to index
-SEQ_CLR_MSG     =   $40     ;                               clear all messages
-SEQ_CLR_SHP     =   $50     ;                               remove all ships
-SEQ_CLR_PLY     =   $60     ;                               remove player
-SEQ_CLR_ACT     =   $70     ;                               remove all actors
-SEQ_ADD_MSG     =   $80     ; x, y, time, message-index     display a message  
-SEQ_ADD_SHP     =   $90     ;                               add a ship
-SEQ_ADD_PLY     =   $A0     ;                               display player
-SEQ_ADD_ACT     =   $B0     ; shape, x, y, path, state      add actor
-SEQ_SUB_SHP     =   $C0     ; index*2                       remove ship, if none left goto index
-SEQ_SET_CKP     =   $D0     ;                               set checkpoint
-SEQ_JMP_CKP     =   $E0     ;                               jump to checkpoint
-SEQ_BRK         =   $FF     ;                               cause break
+SEQ_DLY_ACT     =   $18     ;                               wait until no actors
+SEQ_JMP         =   $20     ; index*2                       jump to index
+SEQ_CLR_MSG     =   $28     ;                               clear all messages
+SEQ_CLR_SHP     =   $30     ;                               remove all ships
+SEQ_CLR_PLY     =   $38     ;                               remove player
+SEQ_CLR_ACT     =   $40     ;                               remove all actors
+SEQ_ADD_MSG     =   $48     ; x, y, time, message-index     display a message  
+SEQ_ADD_SHP     =   $50     ;                               add a ship
+SEQ_ADD_PLY     =   $58     ;                               display player
+SEQ_ADD_ACT     =   $60     ; shape, x, y, path, state      add actor
+SEQ_SUB_SHP     =   $68     ; index*2                       remove ship, if none left goto index
+SEQ_SET_CKP     =   $70     ;                               set checkpoint
+SEQ_JMP_CKP     =   $78     ;                               jump to checkpoint
+SEQ_SYN_ACT     =   $80     ;                               synchronize actors
+SEQ_ALR         =   $88     ;                               play alert sound
 
+SEQ_BRK_LEN     =   1
 SEQ_DLY_LEN     =   2
 SEQ_DLY_INT_LEN =   4
 SEQ_DLY_ACT_LEN =   1
@@ -51,8 +54,8 @@ SEQ_ADD_ACT_LEN =   6
 SEQ_SUB_SHP_LEN =   3
 SEQ_SET_CKP_LEN =   1
 SEQ_JMP_CKP_LEN =   1
-SEQ_BRK_LEN     =   1
-
+SEQ_SYN_ACT_LEN =   1
+SEQ_ALR_LEN     =   1
 
 .align 256
 
@@ -96,7 +99,7 @@ SEQ_BRK_LEN     =   1
     lda     (seqPtr0),y
 
 delay:
-    ;cmp     #SEQ_DLY      -- don't need to compare to zero
+    cmp     #SEQ_DLY
     bne     delayInt
 
     jsr     seq_delay
@@ -222,6 +225,8 @@ add_player:
     cmp     #SEQ_ADD_PLY
     bne     add_actor
 
+    jsr     sound_start
+
     ; set player coordinates
     lda     #PLAYER_ACTIVE_X
     sta     playerX
@@ -293,13 +298,33 @@ set_chk:
 
 jump_chk:
     cmp     #SEQ_JMP_CKP
-    bne     seq_error
+    bne     syn_act
 
     lda     seqCheckPoint0
     sta     seqPtr0
     lda     seqCheckPoint1
     sta     seqPtr1
     rts
+
+syn_act:
+    cmp     #SEQ_SYN_ACT
+    bne     seq_alert
+
+    jsr     sync_actors
+
+    ; go to next instruction
+    lda     #SEQ_SYN_ACT_LEN
+    jmp     seq_next
+
+seq_alert:
+    cmp     #SEQ_ALR
+    bne     seq_error
+
+    jsr     sound_alert
+
+    ; go to next instruction
+    lda     #SEQ_ALR_LEN
+    jmp     seq_next
 
 seq_error:
     ; We should never have a bad instruction
@@ -407,7 +432,6 @@ seq_game_start:
     .byte   SEQ_ADD_PLY     ; Give player control
     .byte   SEQ_DLY,        10
 
-
 seq_wave_1:
     .byte   SEQ_ADD_MSG,    3, 5, 10, MESSAGE_WAVE1
     .byte   SEQ_DLY,        10
@@ -505,9 +529,21 @@ seq_wave_3:
     ; 3.3
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        10
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_3, 20
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_2, 20
     .byte   SEQ_DLY_ACT
 
+seq_boss:
+    .byte   SEQ_SET_CKP
+    .byte   SEQ_ADD_MSG,    5, 5, 10, MESSAGE_BOSS
+    .byte   SEQ_ALR
+    .byte   SEQ_DLY,        20
+    .byte   SEQ_ADD_ACT,    SPRITE_BOSSH,  17,  256-7, PATH_BOSS_1, 10
+    .byte   SEQ_ADD_ACT,    SPRITE_BOSSAL, 14,  256-4, PATH_BOSS_3, 10
+    .byte   SEQ_ADD_ACT,    SPRITE_BOSSB,  17,  256-4, PATH_BOSS_1, 10
+    .byte   SEQ_ADD_ACT,    SPRITE_BOSSAR, 22,  256-4, PATH_BOSS_3, 10
+    .byte   SEQ_ADD_ACT,    SPRITE_BOSSL,  17,  256-1, PATH_BOSS_2, 10
+    .byte   SEQ_SYN_ACT
+    .byte   SEQ_DLY_ACT
 
 seq_game_won:
     .byte   SEQ_ADD_MSG,    11, 5, 20, MESSAGE_WON1

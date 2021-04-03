@@ -166,14 +166,15 @@ MESSAGE_PEW     = 8
 MESSAGE_WAVE1   = 11
 MESSAGE_WAVE2   = 12
 MESSAGE_WAVE3   = 13
-MESSAGE_TITLE1  = 14
-MESSAGE_TITLE2  = 15
-MESSAGE_TITLE3  = 16
-MESSAGE_START   = 17
-MESSAGE_DONE1   = 18
-MESSAGE_DONE2   = 19
-MESSAGE_WON1    = 20
-MESSAGE_WON2    = 21
+MESSAGE_BOSS    = 14
+MESSAGE_TITLE1  = 15
+MESSAGE_TITLE2  = 16
+MESSAGE_TITLE3  = 17
+MESSAGE_START   = 18
+MESSAGE_DONE1   = 19
+MESSAGE_DONE2   = 20
+MESSAGE_WON1    = 21
+MESSAGE_WON2    = 22
 
 message_list:
     .word   message_bad0        ;0
@@ -190,15 +191,15 @@ message_list:
     .word   message_wave1
     .word   message_wave2       ; 12
     .word   message_wave3
+    .word   message_boss
     .word   message_title1
-    .word   message_title2
-    .word   message_title3      ; 16
+    .word   message_title2      ; 16
+    .word   message_title3      
     .word   message_start
     .word   message_done1
-    .word   message_done2
-    .word   message_won1        ; 20
+    .word   message_done2       ; 20
+    .word   message_won1
     .word   message_won2
-
 
 ;-----------------------------------------------------------------------------
 ; Message Strings
@@ -245,6 +246,9 @@ message_wave2:
 
 message_wave3:
     StringInv0  " --- WAVE THREE - CONCLUSION --- "
+
+message_boss:
+    StringInv0  " --- LARGE ALIEN DETECTED --- "
 
 message_title1:
     StringHi0   "ASCII ALIENS"

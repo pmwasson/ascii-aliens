@@ -58,87 +58,36 @@ loop2:
 .proc sound_add_ship
     lda     #60         ; tone
     ldx     #15         ; duration
-    jsr     sound_tone  ; link returns
+    jsr     sound_tone
     lda     #40         ; tone
     ldx     #10         ; duration
     jmp     sound_tone  ; link returns
 .endproc
 
 ;-----------------------------------------------------------------------------
-; sound_bark
+; sound_start
 ;-----------------------------------------------------------------------------
-.proc sound_bark
-    lda     #20         ; tone
-    ldx     #40         ; duration
-    jsr     sound_tone
-    lda     #200        ; tone
-    ldx     #5          ; duration
-    jsr     sound_tone
-    lda     #50         ; tone
-    ldx     #40         ; duration
-    jmp     sound_tone  ; link returns
-.endproc
-
-;-----------------------------------------------------------------------------
-; sound_quack
-;-----------------------------------------------------------------------------
-.proc sound_quack
-    lda     #35         ; tone
-    ldx     #40         ; duration
-    jsr     sound_tone
-    lda     #200        ; tone
-    ldx     #60         ; duration
-    jsr     sound_tone
-    lda     #35         ; tone
-    ldx     #40         ; duration
-    jmp     sound_tone  ; link returns
-.endproc
-
-;-----------------------------------------------------------------------------
-; sound_door
-;-----------------------------------------------------------------------------
-.proc sound_door
-    lda     #200        ; tone
-    ldx     #4          ; duration
-    jmp     sound_tone  ; link returns
-.endproc
-
-;-----------------------------------------------------------------------------
-; sound_pickup
-;-----------------------------------------------------------------------------
-.proc sound_pickup
-    lda     #200        ; tone
-    ldx     #25         ; duration
-    jsr     sound_tone 
-    lda     #100        ; tone
-    ldx     #20         ; duration
-    jsr     sound_tone 
-    lda     #35         ; tone
+.proc sound_start
+    lda     #60         ; tone
     ldx     #100        ; duration
-    jmp     sound_tone  ; link return
-.endproc
-
-;-----------------------------------------------------------------------------
-; sound_crash
-;-----------------------------------------------------------------------------
-.proc sound_crash
-    lda     #35         ; tone
+    jsr     sound_tone
+    lda     #40         ; tone
     ldx     #100        ; duration
-    jsr     sound_tone 
-    lda     #100        ; tone
-    ldx     #20         ; duration
-    jsr     sound_tone 
-    lda     #200        ; tone
-    ldx     #25         ; duration
-    jmp     sound_tone  ; link return
+    jmp     sound_tone  ; link returns
 .endproc
 
 ;-----------------------------------------------------------------------------
-; sound_timer
+; sound_alert
 ;-----------------------------------------------------------------------------
-.proc sound_timer
-    lda     #150        ; tone
-    ldx     #200        ; duration
-    jmp     sound_tone  ; link return
+.proc sound_alert
+    lda     #175        ; tone
+    ldx     #32         ; duration
+    jsr     sound_tone
+    lda     #190        ; tone
+    ldx     #32         ; duration
+    jmp     sound_tone  ; link returns
 .endproc
+
+
+
 
