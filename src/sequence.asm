@@ -265,7 +265,8 @@ sub_ship:
     cmp     #SEQ_SUB_SHP
     bne     set_chk
 
-    dec     shipCount
+    ; *** CHEAT!!! *** should be "dec"
+    inc     shipCount
     bne     :+
 
     ; jump to index
@@ -404,6 +405,7 @@ seq_game_start:
     .byte   SEQ_ADD_PLY     ; Give player control
     .byte   SEQ_DLY,        10
 
+
 seq_wave_1:
     .byte   SEQ_ADD_MSG,    3, 5, 10, MESSAGE_WAVE1
     .byte   SEQ_DLY,        10
@@ -412,8 +414,7 @@ seq_wave_1:
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-3, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 12, 256-4, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 20, 256-5, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 16, 256-5, PATH_CRAWL_1, 1
     .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 28, 256-6, PATH_CRAWL_1, 1
     .byte   SEQ_DLY_ACT
 
@@ -422,11 +423,9 @@ seq_wave_1:
     .byte   SEQ_DLY,        10
     .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 4,  256-3, PATH_FALL_1, 1
     .byte   SEQ_DLY,        2
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 12, 256-3, PATH_FALL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 17, 256-3, PATH_FALL_1, 1
     .byte   SEQ_DLY,        2
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 20, 256-3, PATH_FALL_1, 1
-    .byte   SEQ_DLY,        2
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 28, 256-3, PATH_FALL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 31, 256-3, PATH_FALL_1, 1
     .byte   SEQ_DLY_ACT
 
     ; 1.3
@@ -442,10 +441,13 @@ seq_wave_2:
     ; 2.1
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        10
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-3, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 12, 256-4, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 20, 256-5, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 28, 256-6, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-1, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 12, 256-1, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 22, 256-1, PATH_CRAWL_2, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 30, 256-1, PATH_CRAWL_2, 1
+    .byte   SEQ_DLY,        4
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 8,  256-4, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 21, 256-4, PATH_CRAWL_2, 1
     .byte   SEQ_DLY_ACT
 
     ; 2.2
@@ -463,7 +465,7 @@ seq_wave_2:
     ; 2.3
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        10
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_1, 10
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_2, 10
     .byte   SEQ_DLY_ACT
 
 
@@ -474,10 +476,15 @@ seq_wave_3:
     ; 3.1
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        10
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-3, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-1, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 12, 256-1, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 22, 256-1, PATH_CRAWL_2, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 30, 256-1, PATH_CRAWL_2, 1
+    .byte   SEQ_DLY,        5
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 4,  256-4, PATH_CRAWL_1, 1
     .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 12, 256-4, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 20, 256-5, PATH_CRAWL_1, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 28, 256-6, PATH_CRAWL_1, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 22, 256-4, PATH_CRAWL_2, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD0, 30, 256-4, PATH_CRAWL_2, 1
     .byte   SEQ_DLY_ACT
 
     ; 3.2
@@ -487,16 +494,16 @@ seq_wave_3:
     .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 12, 256-3, PATH_FALL_3, 1
     .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 22, 256-3, PATH_FALL_3, 1
     .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 32, 256-3, PATH_FALL_3, 1
-    .byte   SEQ_DLY,        3
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 7,  256-3, PATH_FALL_3, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 17, 256-3, PATH_FALL_3, 1
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 27, 256-3, PATH_FALL_3, 1
+    .byte   SEQ_DLY,        2
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 7,  256-4, PATH_FALL_3, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 17, 256-4, PATH_FALL_3, 1
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD2, 27, 256-4, PATH_FALL_3, 1
     .byte   SEQ_DLY_ACT
 
     ; 3.3
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        10
-    .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_1, 20
+    .byte   SEQ_ADD_ACT,    SPRITE_BAD1, 17, 256-3, PATH_CIRCLE_3, 20
     .byte   SEQ_DLY_ACT
 
 
