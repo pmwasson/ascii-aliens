@@ -147,8 +147,7 @@ player:
     sta     playerY
 
     ; set dying sequence
-    lda     #SEQ_DEATH
-    sta     seqIndex
+    jsr     seq_death
 
     ; Update actor state
     ;--------------------------------------
@@ -451,13 +450,14 @@ PATH_NEXT   = 3     ; next path
 
 .align 256
 
-PATH_0_START = path_0 - path
-PATH_1_START = path_1 - path
-PATH_2_START = path_2 - path
+PATH_CRAWL_1    = path_crawl_1  - path
+PATH_FALL_1     = path_fall_1   - path
+PATH_FALL_2     = path_fall_2   - path
+PATH_FALL_3     = path_fall_3   - path
 
 path:
 
-path_0:
+path_crawl_1:
     ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
     .byte   3   ,   13  ,   122 ,   4   ;   4   -3  6   9   0.1     2   12  12.17   6   9
     .byte   0   ,   0   ,   51  ,   8   ;   6   9   6   9   0.8     0   0   0.00    6   9
@@ -466,10 +466,14 @@ path_0:
     .byte   6   ,   12  ,   201 ,   20  ;   2   9   11  27  0.1     9   18  20.12   11  27
     .byte   0   ,   0   ,   127 ,   0   ;   11  27  11  27  0.5     0   0   0.00    11  27
 
-path_1:
+path_fall_1:
     ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
     .byte   0   ,   39  ,   103 ,   0   ;   4   -3  4   28  0.3     0   31  31.00   4   28
 
-path_2:
+path_fall_2:
     ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
     .byte   0   ,   64  ,   62  ,   0   ;   4   -3  4   28  0.5     0   31  31.00   4   28
+
+path_fall_3:
+    ;       x       y       count   next    x1,y1 -> x2,y2  speed   dx  dy  distance
+    .byte   0   ,   91  ,   44  ,   0   ;   4   -3  4   28  0.7     0   31  31.00   4   28

@@ -26,13 +26,13 @@
 ; $E8 
 ;                 $EC $ED $EE $EF
 ;         $FA $FB $FC $FD $FE $FF 
-;
-; Reserve $FE/$FF for inline print
 
 spritePtr0      :=  $06     ; Sprite pointer
 spritePtr1      :=  $07
 screenPtr0      :=  $08     ; Screen pointer
 screenPtr1      :=  $09
+; seqPtr0           $FC
+; seqPtr1           $FD
 stringPtr0      :=  $FE
 stringPtr1      :=  $FF
 
@@ -55,7 +55,7 @@ PLAYER_INACTIVE_Y = 255
     lda     #$15
     jsr     COUT
 
-    ;jsr     set_level_1
+    jsr     seq_init
 
 
 gameLoop:
@@ -256,17 +256,22 @@ draw_bullet:
     ; draw messages last (so never covered up!)
     jsr     draw_messages
 
-;    ; debug
-;
-;    lda     #0
-;    ldy     #0
-;    ldx     seqIndex
-;    jsr     draw_value
-;
-;    lda     #0
-;    ldy     #1
-;    ldx     delayTimer
-;    jsr     draw_value
+    ; debug
+
+    lda     #0
+    ldy     #0
+    ldx     seqPtr1
+    jsr     draw_value
+
+    lda     #2
+    ldy     #0
+    ldx     seqPtr0
+    jsr     draw_value
+
+    lda     #0
+    ldy     #1
+    ldx     delayTimer
+    jsr     draw_value
 
     ; Set display page
     ;-------------------------------------------------------------------------
