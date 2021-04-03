@@ -171,8 +171,9 @@ clear_player:
     cmp     #SEQ_CLR_PLY
     bne     seq_clear_actors
 
-    lda     #PLAYER_INACTIVE_Y
+    lda     #INACTIVE_Y
     sta     playerY
+    sta     bulletY
 
     lda     #SEQ_CLR_PLY_LEN
     jmp     seq_next
@@ -534,10 +535,10 @@ seq_game_over:
     .byte   SEQ_CLR_PLY
     .byte   SEQ_CLR_ACT
     ; Display message
-    .byte   SEQ_ADD_MSG,    11, 5, 30, MESSAGE_DONE
-    ; De-bounce
+    .byte   SEQ_ADD_MSG,    11, 5, 40, MESSAGE_DONE1
     .byte   SEQ_DLY,        10
+    .byte   SEQ_ADD_MSG,    16, 14, 30, MESSAGE_DONE2
     ; Go back to title
-    .byte   SEQ_DLY_INT,    20, <seq_start, >seq_start
+    .byte   SEQ_DLY_INT,    30, <seq_start, >seq_start
     .byte   SEQ_JMP,        <seq_start, >seq_start
 

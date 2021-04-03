@@ -43,7 +43,7 @@ KEY_QUIT        = $1b
 PLAYER_ACTIVE_Y = 20
 PLAYER_ACTIVE_X = (40-5)/2
 
-PLAYER_INACTIVE_Y = 255
+INACTIVE_Y      = 255
 
 .segment "CODE"
 .org    $C00
@@ -257,7 +257,7 @@ draw_bullet:
     jsr     draw_messages
 
     ; debug
-
+.if 0
     lda     #0
     ldy     #0
     ldx     seqPtr1
@@ -272,6 +272,7 @@ draw_bullet:
     ldy     #1
     ldx     delayTimer
     jsr     draw_value
+.endif
 
     ; Set display page
     ;-------------------------------------------------------------------------
@@ -578,13 +579,13 @@ spriteY:        .byte   0
 starOffset:     .byte   0
 
 playerX:        .byte   PLAYER_ACTIVE_X
-playerY:        .byte   PLAYER_INACTIVE_Y
+playerY:        .byte   INACTIVE_Y
 playerSprite:   .byte   0
 
 paddlePosition: .byte   0
 
 bulletX:        .byte   0
-bulletY:        .byte   $ff
+bulletY:        .byte   INACTIVE_Y
 
 shipCount:      .byte   0
 

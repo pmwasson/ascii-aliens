@@ -153,7 +153,7 @@ player:
     ;--------------------------------------
 kill:
     ; clear bullet
-    lda     #$ff
+    lda     #INACTIVE_Y
     sta     bulletY 
 
     ; decrease state
