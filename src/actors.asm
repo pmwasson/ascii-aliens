@@ -165,6 +165,10 @@ kill:
     ; display message
     ldx     #6      ; time
     lda     gameClock
+    lsr                 ; xor in more bits
+    lsr
+    lsr
+    eor     gameClock
     and     #7
     jsr     set_message
 
