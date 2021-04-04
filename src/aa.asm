@@ -236,7 +236,7 @@ pageSelect:
     sta     drawNextPage
 
 
-    ; screen screen and draw stars
+    ; clear screen and draw stars
     jsr     star_screen
 
     ; draw actors
@@ -301,8 +301,6 @@ flipPage:
 flipToPage1:
     sta     LOWSCR          ; diaplay page 1
     rts
-
-alienAnimate:   .byte   0
 
 .endproc
 
@@ -660,6 +658,8 @@ linePage:
 
     ; 256 random number from 0-39 + a few bit 7s set
     ; Not sure I like the different star, may remove
+    ; Yes, alternate stars were removed from the data, but still in the drawing routine
+    
 starTable:
     .byte   $18, $08, $0B, $15, $0B, $15, $1E, $0A, $0B, $23, $25, $10, $1F, $05, $13, $23
     .byte   $1B, $08, $11, $23, $24, $18, $15, $1C, $14, $12, $14, $1B, $0B, $23, $13, $0C

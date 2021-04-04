@@ -57,9 +57,6 @@ SEQ_JMP_CKP_LEN =   1
 SEQ_SYN_ACT_LEN =   1
 SEQ_ALR_LEN     =   1
 
-.align 256
-
-
 ;-----------------------------------------------------------------------------
 ; seq_init
 ;-----------------------------------------------------------------------------
@@ -79,14 +76,15 @@ SEQ_ALR_LEN     =   1
 ;-----------------------------------------------------------------------------
 ; seq_death
 ;-----------------------------------------------------------------------------
-; This could be in the main code, but to keep thing separated, make a tiny
-; subroutine to set the zero page pointer.
+; Set pointer to death sequence
 
 .proc seq_death   
     lda     #<seq_lost_ship
     sta     seqPtr0
     lda     #>seq_lost_ship
     sta     seqPtr1
+    lda     #0
+    sta     delayTimer
     rts
 .endproc
 

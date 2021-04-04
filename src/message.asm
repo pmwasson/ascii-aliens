@@ -63,9 +63,9 @@ message_write_ptr:
 
 ;-----------------------------------------------------------------------------
 ; draw_messages
-; y = row
-; a = col
-; x = value
+;
+; Loop through all messages and display the active ones.
+; Also update counters.
 ;-----------------------------------------------------------------------------
 
 .proc draw_messages
