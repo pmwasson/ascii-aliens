@@ -534,6 +534,12 @@ seq_wave_3:
     .byte   SEQ_DLY_ACT
     .byte   SEQ_DLY,        10
 
+seq_pre_boss:
+    ; no check point as don't want to get mutiple bonus
+    .byte   SEQ_ADD_MSG,    6, 7, 10, MESSAGE_BONUS
+    .byte   SEQ_ADD_SHP
+    .byte   SEQ_DLY,        5
+
 seq_boss:
     .byte   SEQ_SET_CKP
     .byte   SEQ_DLY,        5

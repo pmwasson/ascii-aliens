@@ -175,6 +175,7 @@ MESSAGE_DONE1   = 19
 MESSAGE_DONE2   = 20
 MESSAGE_WON1    = 21
 MESSAGE_WON2    = 22
+MESSAGE_BONUS   = 23
 
 message_list:
     .word   message_bad0        ;0
@@ -200,6 +201,7 @@ message_list:
     .word   message_done2       ; 20
     .word   message_won1
     .word   message_won2
+    .word   message_bonus
 
 ;-----------------------------------------------------------------------------
 ; Message Strings
@@ -273,6 +275,10 @@ message_won1:
 
 message_won2:
     StringHi0  "THANKS FOR PLAYING"
+
+message_bonus:
+    StringInv0  " --- BONUS SHIP AWARDED --- "
+    StringInv0  " --- LARGE ALIEN DETECTED --- "
 
 
 ;-----------------------------------------------------------------------------
